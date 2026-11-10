@@ -146,7 +146,7 @@ function buildEngine(){
 }
 function engineTitle(){return cfg.layout==="V"?"V"+cfg.cyl:cfg.layout==="BOXER"?"BOXER "+cfg.cyl:"I"+cfg.cyl;}
 function updateSpecs(){
- $("specLayout").value=cfg.layout;$("specLayoutRead").textContent=engineTitle();$("specGearbox").value=cfg.gearbox;$("specCyl").value=cfg.cyl;$("specBore").value=cfg.bore;$("specStroke").value=cfg.stroke;$("specComp").value=cfg.compression;$("specValves").value=cfg.valves;$("specCam").value=cfg.cam;$("specRedline").value=cfg.redline;$("specAsp").value=cfg.aspiration;$("specTurbo").value=cfg.turbo;$("specBoost").value=cfg.boostTarget;$("specBoostOut").textContent=cfg.boostTarget.toFixed(1)+" bar";
+ $("specLayout").value=cfg.layout;$("specLayoutRead").textContent=engineTitle();$("specGearbox").value=cfg.gearbox;$("specTurboSize").value=cfg.turboSize;$("specFiring").value=cfg.firing;$("specCyl").value=cfg.cyl;$("specBore").value=cfg.bore;$("specStroke").value=cfg.stroke;$("specComp").value=cfg.compression;$("specValves").value=cfg.valves;$("specCam").value=cfg.cam;$("specRedline").value=cfg.redline;$("specAsp").value=cfg.aspiration;$("specTurbo").value=cfg.turbo;$("specBoost").value=cfg.boostTarget;$("specBoostOut").textContent=cfg.boostTarget.toFixed(1)+" bar";
  $("specDisp").textContent=(Math.PI/4*(cfg.bore/10)**2*(cfg.stroke/10)*cfg.cyl/1000).toFixed(2)+" л";
  $("specMean").textContent=(2*cfg.stroke/1000*cfg.redline/60).toFixed(1)+" м/с";
  $("redlineRead").textContent=fmt(cfg.redline);$("compressionRead").textContent=cfg.compression.toFixed(1)+":1";
@@ -270,7 +270,7 @@ function bind(){
  $("specLayout").onchange=e=>cfg.layout=e.target.value;
  $("specCyl").onchange=e=>cfg.cyl=+e.target.value;
  ["specBore","specStroke","specComp","specValves","specCam","specRedline","specBoost"].forEach(id=>$(id).oninput=e=>{const key={specBore:"bore",specStroke:"stroke",specComp:"compression",specValves:"valves",specCam:"cam",specRedline:"redline",specBoost:"boostTarget"}[id];cfg[key]=+e.target.value;updateSpecs();});
- $("specAsp").onchange=e=>{cfg.aspiration=e.target.value;if(cfg.aspiration==="supercharger")cfg.turbo="roots";};$("specTurbo").onchange=e=>cfg.turbo=e.target.value;
+ $("specAsp").onchange=e=>{cfg.aspiration=e.target.value;if(cfg.aspiration==="supercharger"){cfg.turbo="roots";$("specTurbo").value="roots";}};$("specTurbo").onchange=e=>cfg.turbo=e.target.value;$("specTurboSize").onchange=e=>cfg.turboSize=+e.target.value;$("specFiring").onchange=e=>cfg.firing=e.target.value;
  $("applyBuild").onclick=()=>{buildEngine();tab("run");};
  $("gearbox").onchange=e=>{cfg.gearbox=e.target.value;state.gear=0;renderGears();};$("specGearbox").onchange=e=>{cfg.gearbox=e.target.value;state.gear=0;renderGears();};
  $("dynoStart").onclick=()=>{state.dyno=true;state.dynoData=[];state.running=true;state.throttle=.3;drawDyno();};
