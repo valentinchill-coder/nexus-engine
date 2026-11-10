@@ -368,7 +368,7 @@ function tab(name){
 }
 function bind(){
  document.querySelectorAll("[data-tab]").forEach(b=>b.onclick=()=>tab(b.dataset.tab));
- $("startBtn").onclick=()=>{state.running=true;state.rpm=Math.max(state.rpm,850);$("startBtn").textContent="ДВИГАТЕЛЬ РАБОТАЕТ";initAudio();audio.resume();if(engineSample){engineSample.play().catch(()=>audioLoop());}};
+ $("startBtn").onclick=()=>{state.running=true;state.rpm=Math.max(state.rpm,850);$("startBtn").textContent="ДВИГАТЕЛЬ РАБОТАЕТ";try{initAudio();if(audio)audio.resume().catch(()=>{});}catch(e){console.warn("Web Audio unavailable",e);}if(engineSample){engineSample.play().catch(()=>{if(audio)audioLoop();});}};
  $("stopBtn").onclick=()=>{state.running=false;state.throttle=0;state.rpm=0;if(engineSample){engineSample.pause();engineSample.currentTime=0;}$("startBtn").textContent="ЗАПУСТИТЬ ДВИГАТЕЛЬ";};
  $("throttle").oninput=e=>state.throttle=+e.target.value/100;$("brake").oninput=e=>state.brake=+e.target.value/100;
  $("gearUp").onclick=()=>shift(1);$("gearDown").onclick=()=>shift(-1);$("autoMode").onchange=e=>state.auto=e.target.checked;
