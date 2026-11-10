@@ -150,8 +150,8 @@ function buildEngine(){
    const sc=mesh(root,new THREE.BoxGeometry(.8,.65,.72),M.blue,[len*.35,1.85,0]);
    for(let i=0;i<2;i++){const rotor=cyl(root,.2,.2,.62,M.steel,[len*.35,1.85,(i-.5)*.32]);rotor.rotation.z=Math.PI/2;turboWheels.push(rotor);}
   }else{
-   buildTurbo(root,len*.58,.85);
-   if(cfg.turbo==="twin"||cfg.turbo==="sequential")buildTurbo(root,-len*.58,.85);
+   loadDetailedTurbo(root,len*.58,.85);
+   if(cfg.turbo==="twin"||cfg.turbo==="sequential")loadDetailedTurbo(root,-len*.58,.85);
   }
  }
  // Engine mounts, oil filter, oil cap, fuel rail
