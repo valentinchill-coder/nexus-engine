@@ -208,7 +208,7 @@ function tickPhysics(dt){
 }
 function updateDashboard(){
  $("rpmValue").textContent=fmt(state.rpm);$("powerValue").textContent=fmt(state.power);$("torqueValue").textContent=fmt(state.torque);$("boostValue").textContent=state.boost.toFixed(2);
- $("rpmBar").style.width=(state.rpm/cfg.redline*100)+"%";$("rpmNeedle").style.transform="rotate("+(-135+270*state.rpm/cfg.redline)+"deg)";
+ $("rpmBar").style.width=(state.rpm/cfg.redline*100)+"%";
  $("coolantValue").textContent=fmt(state.coolant)+"°";$("oilValue").textContent=fmt(state.oil)+"°";$("iatValue").textContent=fmt(state.iat)+"°";$("egtValue").textContent=fmt(state.egt)+"°";
  $("spoolValue").textContent=fmt(state.spool*165000)+" rpm";$("spoolBar").style.width=state.spool*100+"%";$("speedValue").textContent=fmt(state.speed)+" км/ч";$("gearValue").textContent=state.gear===0?"N":state.gear<0?"R":state.gear;
  $("engineStatus").textContent=state.running?(state.limiter?"ОТСЕЧКА":state.damage>.25?"НЕИСПРАВНОСТЬ":"РАБОТАЕТ"):"ОСТАНОВЛЕН";
