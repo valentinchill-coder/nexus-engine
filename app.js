@@ -72,11 +72,11 @@ function buildTurbo(parent,x,z){
 }
 function buildEngine(){
  if(!scene)return;
- if(root)scene.remove(root);exploded=false;root=new THREE.Group();scene.add(root);parts=[];pistons=[];rods=[];valves=[];cams=[];turboWheels=[];detailedTurboRotors=[];cutawayParts=[];turboFlap=null;
+ if(root)scene.remove(root);exploded=false;$("cutawayBtn").textContent="РАЗРЕЗ";root=new THREE.Group();scene.add(root);parts=[];pistons=[];rods=[];valves=[];cams=[];turboWheels=[];detailedTurboRotors=[];cutawayParts=[];turboFlap=null;
  const n=cfg.cyl,per=cfg.layout==="I"?n:Math.ceil(n/2),banks=cfg.layout==="I"?[0]:cfg.layout==="BOXER"?[-1.56,1.56]:[-.48,.48],spacing=clamp(.42+cfg.bore/1000,.46,.56),len=(per-1)*spacing+.9,bankAngle=cfg.layout==="V"?.48:cfg.layout==="BOXER"?1.56:0;
  // Deep sump and crankcase
- mesh(root,new THREE.BoxGeometry(len+1,.58,1.4),M.block,[0,-.38,0]);
- mesh(root,new THREE.BoxGeometry(len+.72,.38,1.28),M.dark,[0,-.76,0]);
+ const crankcase=mesh(root,new THREE.BoxGeometry(len+1,.58,1.4),M.block,[0,-.38,0]);crankcase.material=crankcase.material.clone();cutawayParts.push(crankcase);
+ const sump=mesh(root,new THREE.BoxGeometry(len+.72,.38,1.28),M.dark,[0,-.76,0]);sump.material=sump.material.clone();cutawayParts.push(sump);
  // crankshaft core
  crankGroup=new THREE.Group();root.add(crankGroup);
  const main=cyl(crankGroup,.13,.13,len+1.2,M.steel,[0,-.45,0]);main.rotation.z=Math.PI/2;
@@ -89,9 +89,9 @@ function buildEngine(){
  banks.forEach((ang,bi)=>{
   const bank=new THREE.Group();bank.rotation.x=ang;bank.position.z=(bi-(banks.length-1)/2)*.18;root.add(bank);
   const zbank=0;
-  mesh(bank,new THREE.BoxGeometry(len,.42,1.05),M.head,[0,.33,zbank]);
-  mesh(bank,new THREE.BoxGeometry(len,.26,.98),M.dark,[0,.66,zbank]);
-  mesh(bank,new THREE.BoxGeometry(len+.12,.19,.82),material("cover"+bi,bi?0x2e5365:0x536c7b,.8,.25),[0,.91,zbank]);
+  const headShell=mesh(bank,new THREE.BoxGeometry(len,.42,1.05),M.head,[0,.33,zbank]);headShell.material=headShell.material.clone();cutawayParts.push(headShell);
+  const headBase=mesh(bank,new THREE.BoxGeometry(len,.26,.98),M.dark,[0,.66,zbank]);headBase.material=headBase.material.clone();cutawayParts.push(headBase);
+  const valveCover=mesh(bank,new THREE.BoxGeometry(len+.12,.19,.82),material("cover"+bi,bi?0x2e5365:0x536c7b,.8,.25),[0,.91,zbank]);valveCover.material=valveCover.material.clone();cutawayParts.push(valveCover);
   // cam shafts on both sides of each head
   for(let ci=0;ci<2;ci++){
    const z=(ci?1:-1)*.3;
