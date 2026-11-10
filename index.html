@@ -139,6 +139,21 @@ function buildEngine(){
  for(let i=0;i<conf.count;i++){const x=(i-(conf.count-1)/2)*.36;mesh(new THREE.CylinderGeometry(.075,.11,.48,16),dark,engineRoot,x,1.23,0);mesh(new THREE.TorusGeometry(.10,.025,8,20),copper,engineRoot,x,1.47,0)}
  // Выпускные коллекторы — отдельные трубные ветви с каждой стороны
  for(const side of [-1,1]){const manifold=new THREE.Group();engineRoot.add(manifold);for(let i=0;i<per;i++){const x=(i-(per-1)/2)*.36;const pipe=mesh(new THREE.TorusGeometry(.16,.045,10,20,Math.PI*1.25),copper,manifold,x,0.1,side*.85);pipe.rotation.x=Math.PI/2;pipe.rotation.z=side*.3}mesh(new THREE.CylinderGeometry(.12,.12,Math.max(1,per*.34),18),dark,manifold,0,.0,side*1.0).rotation.z=Math.PI/2}
+ // Дополнительные механические детали: свечи, крепёж ГБЦ, шкивы и привод ГРМ
+ const timing=new THREE.Group();engineRoot.add(timing);timing.position.set(0,-.05,.78);
+ const pulley1=mesh(new THREE.CylinderGeometry(.22,.22,.14,32),steel,timing,-.72,-.55,0);pulley1.rotation.x=Math.PI/2;
+ const pulley2=mesh(new THREE.CylinderGeometry(.16,.16,.12,32),copper,timing,.72,.95,0);pulley2.rotation.x=Math.PI/2;
+ const belt=mesh(new THREE.TorusGeometry(.69,.035,8,64),black,timing,0,.20,0);belt.scale.set(1,1.15,1);
+ for(let i=0;i<conf.count;i++){
+  const x=(i-(conf.count-1)/2)*.36;
+  const plug=mesh(new THREE.CylinderGeometry(.045,.045,.28,12),steel,engineRoot,x,1.77,.08);
+  plug.rotation.z=.12;
+  mesh(new THREE.CylinderGeometry(.075,.075,.035,12),copper,engineRoot,x,1.91,.08);
+  for(const z of [-.26,.26]){const bolt=mesh(new THREE.CylinderGeometry(.035,.035,.045,8),steel,engineRoot,x,1.70,z);bolt.rotation.x=Math.PI/2}
+ }
+ const oilFilter=mesh(new THREE.CylinderGeometry(.13,.13,.42,20),aluminum,engineRoot,-1.0,-.92,.63);oilFilter.rotation.z=.22;
+ const throttleBody=mesh(new THREE.CylinderGeometry(.22,.25,.32,24),steel,engineRoot,0,1.28,.42);throttleBody.rotation.x=Math.PI/2;
+ const fuelRail=mesh(new THREE.CylinderGeometry(.045,.045,Math.max(.8,conf.count*.36),12),copper,engineRoot,0,1.12,.82);fuelRail.rotation.z=Math.PI/2;
  // Турбокомпрессор/компрессор: реальная раздельная геометрия корпуса и вращающихся крыльчаток
  turboGroup=new THREE.Group();engineRoot.add(turboGroup);turboWheels=[];
  const tType=$('turboType')?.value||'single',turboCount=tType==='twin'||tType==='seq'?2:tType==='none'?0:1;
@@ -179,9 +194,48 @@ function gearCount(){return box.ratios.length}
 function setGear(n,manual=true){n=clamp(n,1,gearCount());if(n===gear&&!neutral)return;gear=n;neutral=false;shiftTimer=box.shift;shiftMsg='Переключение передачи · размыкание сцепления';$('shiftmsg').textContent=shiftMsg;renderGears()}
 function renderGears(){const wrap=$('gears');wrap.innerHTML='';for(let i=1;i<=gearCount();i++){const b=document.createElement('button');b.textContent=i;b.className=i===gear?'active':'';b.onclick=()=>{if(!box.auto)setGear(i);else $('shiftmsg').textContent='В автоматическом режиме передачами управляет блок управления'};wrap.append(b)}}
 function loadBox(){box=boxes[$('gearbox').value];gear=1;neutral=true;renderGears();$('gearinfo').textContent=box.name+' · '+gearCount()+' ступеней · '+(box.auto?'электронное/автоматическое управление':'ручное переключение')}
-function initAudio(){if(audio)return;const AC=window.AudioContext||window.webkitAudioContext;if(!AC)return;audio=new AC();engineGain=audio.createGain();engineGain.gain.value=0;engineGain.connect(audio.destination);
- for(let i=0;i<3;i++){const o=audio.createOscillator(),g=audio.createGain(),f=audio.createBiquadFilter();o.type=['sawtooth','triangle','square'][i];f.type='lowpass';f.frequency.value=[500,180,1200][i];g.gain.value=[.18,.3,.025][i];o.connect(f);f.connect(g);g.connect(engineGain);o.start();engineOsc.push({o,g,f})}}
-function updateAudio(){if(!soundOn||!audio)return;const freq=Math.max(25,rpm/60*conf.count/2);engineOsc.forEach((n,i)=>{n.o.frequency.setTargetAtTime(freq*(i===0?1:i===1?.5:2),audio.currentTime,.04);n.f.frequency.setTargetAtTime(250+throttle*17+rpm*.12,audio.currentTime,.08)});engineGain.gain.setTargetAtTime(running?.07+throttle*.0015:0,audio.currentTime,.08)}
+function initAudio(){
+ if(audio)return;const AC=window.AudioContext||window.webkitAudioContext;if(!AC)return;
+ audio=new AC();engineGain=audio.createGain();engineGain.gain.value=0;engineGain.connect(audio.destination);
+ const body=audio.createGain();body.gain.value=.42;body.connect(engineGain);
+ const low=audio.createOscillator(),lowGain=audio.createGain(),lowFilter=audio.createBiquadFilter();
+ low.type='sawtooth';lowFilter.type='lowpass';lowFilter.frequency.value=190;lowGain.gain.value=.20;low.connect(lowFilter);lowFilter.connect(lowGain);lowGain.connect(body);low.start();
+ const mid=audio.createOscillator(),midGain=audio.createGain(),midFilter=audio.createBiquadFilter();
+ mid.type='triangle';midFilter.type='bandpass';midFilter.frequency.value=620;midFilter.Q.value=.8;midGain.gain.value=.12;mid.connect(midFilter);midFilter.connect(midGain);midGain.connect(body);mid.start();
+ const noiseBuffer=audio.createBuffer(1,audio.sampleRate*2,audio.sampleRate),noiseData=noiseBuffer.getChannelData(0);
+ for(let i=0;i<noiseData.length;i++)noiseData[i]=(Math.random()*2-1)*.7;
+ const exhaust=audio.createBufferSource();exhaust.buffer=noiseBuffer;exhaust.loop=true;
+ const exhaustFilter=audio.createBiquadFilter();exhaustFilter.type='lowpass';exhaustFilter.frequency.value=850;
+ const exhaustGate=audio.createGain();exhaustGate.gain.value=0;exhaust.connect(exhaustFilter);exhaustFilter.connect(exhaustGate);exhaustGate.connect(engineGain);exhaust.start();
+ const intake=audio.createBufferSource();intake.buffer=noiseBuffer;intake.loop=true;
+ const intakeFilter=audio.createBiquadFilter();intakeFilter.type='bandpass';intakeFilter.frequency.value=1250;intakeFilter.Q.value=.65;
+ const intakeGain=audio.createGain();intakeGain.gain.value=0;intake.connect(intakeFilter);intakeFilter.connect(intakeGain);intakeGain.connect(engineGain);intake.start();
+ const pulse=audio.createOscillator(),pulseGain=audio.createGain(),pulseOffset=audio.createConstantSource();
+ pulse.type='square';pulseGain.gain.value=.48;pulseOffset.offset.value=.5;pulse.connect(pulseGain);pulseOffset.connect(pulseGain.gain);pulseGain.connect(exhaustGate.gain);pulse.start();pulseOffset.start();
+ const turbo=audio.createOscillator(),turboFilter=audio.createBiquadFilter(),turboGain=audio.createGain();
+ turbo.type='sine';turboFilter.type='bandpass';turboFilter.frequency.value=6500;turboFilter.Q.value=2;turboGain.gain.value=0;turbo.connect(turboFilter);turboFilter.connect(turboGain);turboGain.connect(engineGain);turbo.start();
+ engineOsc=[{o:low,g:lowGain,f:lowFilter},{o:mid,g:midGain,f:midFilter},{o:pulse,g:pulseGain,f:exhaustFilter},{o:turbo,g:turboGain,f:turboFilter}];
+ audioNodes={body,exhaustGate,intakeGain,pulse,pulseOffset,turbo,turboGain,exhaustFilter,intakeFilter};
+}
+let audioNodes=null;
+function updateAudio(){
+ if(!soundOn||!audio||!audioNodes)return;
+ const t=audio.currentTime,crank=Math.max(0,rpm/60),fire=Math.max(8,crank*conf.count/2);
+ const active=running?1:0,load=throttle/100;
+ engineOsc[0].o.frequency.setTargetAtTime(Math.max(24,crank*2),t,.035);
+ engineOsc[0].f.frequency.setTargetAtTime(90+rpm*.12,t,.08);
+ engineOsc[1].o.frequency.setTargetAtTime(Math.max(35,fire),t,.025);
+ engineOsc[1].f.frequency.setTargetAtTime(300+rpm*.22+load*900,t,.06);
+ audioNodes.pulse.frequency.setTargetAtTime(fire,t,.025);
+ audioNodes.exhaustGate.gain.setTargetAtTime(active*(.16+load*.28),t,.035);
+ audioNodes.intakeGain.gain.setTargetAtTime(active*(.012+load*.09),t,.08);
+ audioNodes.intakeFilter.frequency.setTargetAtTime(700+load*2800+rpm*.12,t,.08);
+ audioNodes.exhaustFilter.frequency.setTargetAtTime(300+load*1000+rpm*.06,t,.08);
+ audioNodes.turbo.frequency.setTargetAtTime(1800+turboRPM*.075,t,.1);
+ audioNodes.turboGain.gain.setTargetAtTime(active&&boost>.12?Math.min(.055,boost*.018):0,t,.12);
+ audioNodes.body.gain.setTargetAtTime(active?.30+load*.20:0,t,.1);
+ engineGain.gain.setTargetAtTime(active?1:0,t,.08);
+}
 function updateUI(){const tq=running?Math.round(getTorque(rpm)*(1-Math.max(0,engineLoad)*.3)*(1+boost*.17)):0,hp=Math.round(tq*rpm/7127);$('rpm').textContent=Math.round(rpm).toLocaleString('ru');$('speed').textContent=Math.round(speed);$('temp').textContent=Math.round(temp)+'°';$('power').textContent=hp;$('torque').textContent=tq;$('boost').textContent=boost.toFixed(1);
  if($('dashRPM'))$('dashRPM').textContent=Math.round(rpm).toLocaleString('ru');
  if($('dashSpeed'))$('dashSpeed').textContent=Math.round(speed);
