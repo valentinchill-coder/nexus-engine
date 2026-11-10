@@ -228,6 +228,7 @@ function animateEngine(dt){
  cams.forEach(c=>c.rotation.x=a*.5);
  valves.forEach(v=>{const lift=Math.max(0,Math.sin(a*.5+v.phase+(v.v%2)*Math.PI/2))*.075;v.stem.position.y=.78-lift;v.head.position.y=.64-lift;});
  turboWheels.forEach((w,i)=>{w.rotation.x+=dt*(state.spool*150)*(i%2?1.02:1);});
+ superchargerWheels.forEach((w,i)=>{w.rotation.x+=dt*(state.rpm/60*Math.PI*2*1.8)*(i?-1:1);});
  detailedTurboRotors.forEach((w,i)=>{w.rotation.x+=dt*(state.spool*165)*(i%2?1.02:1);});
  if(turboFlap)turboFlap.rotation.y=state.boost>cfg.boostTarget*.9?.35:0;
  root.scale.setScalar(1);
