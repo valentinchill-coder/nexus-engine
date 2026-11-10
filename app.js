@@ -10,7 +10,7 @@ const state = {running:false,rpm:0,throttle:0,brake:0,boost:0,spool:0,coolant:22
 const ratios = {manual6:[3.45,2.12,1.45,1.00,.82,.68],dct7:[3.10,2.18,1.58,1.22,1,.84,.72],auto8:[4.70,3.13,2.10,1.67,1.29,1,.84,.67],cvt:[3.2,2.7,2.3,1.9,1.6,1.3,1,.8]};
 const firingOrders = {4:[1,3,4,2],6:[1,5,3,6,2,4],8:[1,8,4,3,6,5,7,2],10:[1,6,5,10,2,7,3,8,4,9],12:[1,7,5,11,3,9,6,12,2,8,4,10]};
 let scene,camera,renderer,orbit,root,crankGroup,parts=[],pistons=[],rods=[],valves=[],cams=[],turboWheels=[],turboFlap,cutawayParts=[],exploded=false,activeTab="run",ecuMode="fuel";
-let audio=null,audioMaster=null,exhaustFilter=null,intakeFilter=null,turboOsc=null,turboGain=null,nextPulse=0,pulseIndex=0;
+let audio=null,audioMaster=null,exhaustFilter=null,intakeFilter=null,turboOsc=null,turboGain=null,nextPulse=0,pulseIndex=0,audioLoopActive=false;
 const mats = {};
 function material(name,color,metal=.7,rough=.3){return mats[name] ||= new THREE.MeshStandardMaterial({color,metalness:metal,roughness:rough});}
 const M={block:material("block",0x52616b,.82,.3),head:material("head",0x8998a2,.86,.23),dark:material("dark",0x17232d,.68,.36),steel:material("steel",0xc4cdd2,.92,.2),piston:material("piston",0xb5c0c7,.88,.22),copper:material("copper",0xb56d42,.8,.27),gold:material("gold",0xb59a5a,.84,.23),rubber:material("rubber",0x101519,.05,.82),red:material("red",0x8e3026,.6,.35),blue:material("blue",0x287c9b,.7,.27)};
@@ -54,7 +54,7 @@ function buildTurbo(parent,x,z){
 }
 function buildEngine(){
  if(!scene)return;
- if(root)scene.remove(root);root=new THREE.Group();scene.add(root);parts=[];pistons=[];rods=[];valves=[];cams=[];turboWheels=[];cutawayParts=[];turboFlap=null;
+ if(root)scene.remove(root);exploded=false;root=new THREE.Group();scene.add(root);parts=[];pistons=[];rods=[];valves=[];cams=[];turboWheels=[];cutawayParts=[];turboFlap=null;
  const n=cfg.cyl,per=cfg.layout==="I"?n:Math.ceil(n/2),banks=cfg.layout==="I"?[0]:cfg.layout==="BOXER"?[-1.56,1.56]:[-.48,.48],spacing=clamp(.42+cfg.bore/1000,.46,.56),len=(per-1)*spacing+.9,bankAngle=cfg.layout==="V"?.48:cfg.layout==="BOXER"?1.56:0;
  // Deep sump and crankcase
  mesh(root,new THREE.BoxGeometry(len+1,.58,1.4),M.block,[0,-.38,0]);
@@ -257,11 +257,15 @@ function playBov(){
  src.connect(filter);filter.connect(gain);gain.connect(audioMaster);src.start();
 }
 function audioLoop(){
- if(!audio||!state.running){requestAnimationFrame(audioLoop);return;}
- const now=audio.currentTime,rpm=Math.max(0,state.rpm),hz=Math.max(1,rpm/60*cfg.cyl/2);
- if(nextPulse<now)nextPulse=now+.005;
- while(nextPulse<now+.045){schedulePulse(nextPulse);nextPulse+=1/hz;}
- requestAnimationFrame(audioLoop);
+ if(audioLoopActive)return;audioLoopActive=true;
+ const frame=()=>{
+  if(!audio||!state.running){audioLoopActive=false;return;}
+  const now=audio.currentTime,rpm=Math.max(0,state.rpm),hz=Math.max(1,rpm/60*cfg.cyl/2);
+  if(nextPulse<now)nextPulse=now+.005;
+  while(nextPulse<now+.045){schedulePulse(nextPulse);nextPulse+=1/hz;}
+  requestAnimationFrame(frame);
+ };
+ requestAnimationFrame(frame);
 }
 function drawDyno(){
  const c=$("dynoCanvas");if(!c)return;const ctx=c.getContext("2d"),w=c.width,h=c.height;ctx.clearRect(0,0,w,h);
@@ -289,7 +293,7 @@ function tab(name){
 }
 function bind(){
  document.querySelectorAll("[data-tab]").forEach(b=>b.onclick=()=>tab(b.dataset.tab));
- $("startBtn").onclick=()=>{state.running=true;state.rpm=Math.max(state.rpm,850);$("startBtn").textContent="ДВИГАТЕЛЬ РАБОТАЕТ";initAudio();audio.resume();nextPulse=audio.currentTime;requestAnimationFrame(audioLoop);};
+ $("startBtn").onclick=()=>{state.running=true;state.rpm=Math.max(state.rpm,850);$("startBtn").textContent="ДВИГАТЕЛЬ РАБОТАЕТ";initAudio();audio.resume();nextPulse=audio.currentTime;audioLoop();};
  $("stopBtn").onclick=()=>{state.running=false;state.throttle=0;state.rpm=0;$("startBtn").textContent="ЗАПУСТИТЬ ДВИГАТЕЛЬ";};
  $("throttle").oninput=e=>state.throttle=+e.target.value/100;$("brake").oninput=e=>state.brake=+e.target.value/100;
  $("gearUp").onclick=()=>shift(1);$("gearDown").onclick=()=>shift(-1);$("autoMode").onchange=e=>state.auto=e.target.checked;
