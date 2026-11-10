@@ -2,253 +2,106 @@
 <html lang="ru">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#080d13"><title>NEXUS ENGINE LAB — Симулятор двигателя</title>
+<meta name="theme-color" content="#080e14"><title>NEXUS ENGINE LAB — Engine Builder & Simulator</title>
 <style>
-:root{color-scheme:dark;--bg:#080d13;--panel:#101923;--panel2:#0b131c;--line:#253747;--muted:#8ba0b1;--cyan:#43d8ee;--orange:#ff8748;--green:#7ee0ad}
-*{box-sizing:border-box}html,body{margin:0;min-height:100%;background:var(--bg);color:#eaf3fa;font:14px Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
-body{background:radial-gradient(ellipse at 50% -20%,#183044 0,transparent 45%),var(--bg)}
-.top{height:58px;display:flex;align-items:center;justify-content:space-between;padding:0 18px;border-bottom:1px solid var(--line);background:#09111ad9;position:sticky;top:0;z-index:5;backdrop-filter:blur(16px)}
-.brand{font-weight:950;letter-spacing:2.8px;font-size:15px}.brand span{color:var(--cyan)}.topright{display:flex;gap:9px;align-items:center;color:var(--muted);font-size:11px}.live{width:7px;height:7px;border-radius:50%;background:var(--green);box-shadow:0 0 12px var(--green)}
-.wrap{max-width:1440px;margin:auto;padding:14px;display:grid;grid-template-columns:minmax(0,1.55fr) minmax(320px,.85fr);gap:13px}
-.panel{border:1px solid var(--line);border-radius:13px;background:linear-gradient(150deg,#152331,#0d151e 60%);overflow:hidden;box-shadow:0 10px 40px #0003}
-.visual{height:460px;position:relative;background:radial-gradient(ellipse at 50% 42%,#284357,#0b141e 72%);touch-action:none}
-#scene{width:100%;height:100%;display:block;touch-action:none}
-.visual:after{content:"";position:absolute;inset:auto 0 0;height:70px;background:linear-gradient(transparent,#0a111b);pointer-events:none}
-.tag{position:absolute;top:14px;left:16px;z-index:2;font-size:9px;letter-spacing:2px;color:#a6bdcd}.tag b{color:var(--cyan);font-weight:800}
-.visualtools{position:absolute;right:12px;top:10px;z-index:3;display:flex;gap:6px}.tool{border:1px solid #496073;background:#0c1722d9;color:#dceaf4;padding:8px 10px;border-radius:7px;font-size:10px}
-.viewhint{position:absolute;bottom:12px;left:15px;color:#8299aa;font-size:10px;z-index:2}
-.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--line);border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
-.stat{background:#0c151e;padding:12px 8px;text-align:center}.stat strong{font-size:clamp(19px,3vw,26px);font-variant-numeric:tabular-nums;display:block;letter-spacing:-.5px}.stat small{font-size:9px;color:var(--muted);letter-spacing:1.2px}
-.controls{padding:14px;display:grid;grid-template-columns:1fr 1fr;gap:12px 14px}
-.field label{display:flex;justify-content:space-between;gap:8px;color:#a9bdca;font-size:11px;margin-bottom:7px}.field output{color:var(--cyan);font-variant-numeric:tabular-nums}
-select,input[type=range]{width:100%}select{background:#0a141e;border:1px solid #344a5c;color:#eff7fb;padding:10px;border-radius:7px;font:inherit;font-size:12px}
-input[type=range]{accent-color:var(--cyan);height:18px;margin:2px 0}
-.actions{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;padding:0 14px 14px}
-button{cursor:pointer;font:inherit}.btn{border:1px solid #385267;background:#152735;color:#eff8fc;border-radius:8px;padding:12px 8px;font-weight:750;font-size:11px;letter-spacing:.5px}.btn.primary{background:linear-gradient(135deg,#087f98,#145c75);border-color:#20b6d0}.btn.warn{border-color:#86543e;background:#352219}
-.side{display:grid;gap:12px;align-content:start}.section{padding:14px}.section h2{font-size:10px;letter-spacing:1.8px;color:#b5cbd9;margin:0 0 12px}.metric{display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px solid #243542;color:#91a7b7;font-size:11px}.metric:last-child{border:0}.metric b{color:#f3f8fb;font-size:12px;font-variant-numeric:tabular-nums}
-.barline{height:5px;border-radius:8px;background:#263746;overflow:hidden;margin-top:8px}.barline i{display:block;height:100%;width:0;background:linear-gradient(90deg,#29a8c4,#78e3ee);border-radius:8px;transition:width .12s}
-.geargrid{display:grid;grid-template-columns:repeat(5,1fr);gap:5px;margin-top:8px}.gear{padding:8px 2px;border:1px solid #354c5d;border-radius:6px;text-align:center;color:#8fa7b8;background:#0a141d;font-weight:800}.gear.active{color:#06151b;background:var(--cyan);border-color:var(--cyan)}
-.shift{display:flex;gap:7px;margin-top:9px}.shift .btn{flex:1}
-.note{color:#748b9b;font-size:9px;line-height:1.5;margin:10px 0 0}.credit{border-top:1px solid var(--line);padding:11px 14px;color:#637c8d;font-size:9px;display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}
-@media(max-width:900px){.wrap{grid-template-columns:1fr}.visual{height:390px}.side{grid-template-columns:1fr 1fr}.side .panel:first-child{grid-column:1/-1}}
-@media(max-width:560px){.top{height:52px;padding:0 12px}.wrap{padding:8px;gap:9px}.visual{height:310px}.controls{padding:11px;gap:10px}.section{padding:12px}.side{grid-template-columns:1fr}.side .panel:first-child{grid-column:auto}.stat{padding:10px 3px}.stat small{font-size:8px}.actions{padding:0 11px 11px}.btn{padding:11px 5px;font-size:10px}}
+:root{color-scheme:dark;--bg:#080e14;--panel:#101b25;--panel2:#0c151e;--line:#263b4b;--muted:#8ea5b5;--text:#eaf4fa;--cyan:#47d8eb;--orange:#f0a05b;--green:#6fe0a4;--red:#e16d63}
+*{box-sizing:border-box}html,body{margin:0;min-height:100%;background:var(--bg);color:var(--text);font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif}
+body{background:radial-gradient(ellipse at 50% -20%,#183246 0,transparent 44%),var(--bg);padding-bottom:76px}
+button,select,input{font:inherit}button{cursor:pointer}
+header{height:58px;display:flex;align-items:center;justify-content:space-between;padding:0 18px;border-bottom:1px solid var(--line);background:#09131ddd;position:sticky;top:0;z-index:10;backdrop-filter:blur(14px)}
+.brand{font-size:14px;font-weight:950;letter-spacing:2.2px}.brand span{color:var(--cyan)}.headright{display:flex;gap:9px;align-items:center;color:var(--muted);font-size:10px;letter-spacing:1px}.led{width:7px;height:7px;background:var(--green);border-radius:50%;box-shadow:0 0 10px var(--green)}
+main{max-width:1440px;margin:auto;padding:14px}.screen{display:none}.screen.visible{display:block}
+.panel{background:linear-gradient(145deg,#142330,#0d1721 70%);border:1px solid var(--line);border-radius:12px;overflow:hidden;box-shadow:0 12px 38px #0003}
+.gridmain{display:grid;grid-template-columns:minmax(0,1.55fr) minmax(300px,.78fr);gap:12px}
+.viewer{height:430px;position:relative;background:radial-gradient(ellipse at 50% 44%,#273f51,#0b141e 72%)}#engineView{width:100%;height:100%;display:block;touch-action:none}
+.viewlabel{position:absolute;left:15px;top:13px;color:#a9c0ce;font-size:9px;letter-spacing:1.8px;pointer-events:none}.viewlabel b{color:var(--cyan)}
+.viewtools{position:absolute;right:12px;top:10px;display:flex;gap:6px}.mini{font-size:9px;color:#dceaf1;background:#0c1823d9;border:1px solid #415a6c;border-radius:6px;padding:8px 9px}
+.viewhint{position:absolute;bottom:11px;left:14px;color:#7e96a7;font-size:9px;pointer-events:none}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--line);border-top:1px solid var(--line)}
+.stat{background:#0c151e;text-align:center;padding:11px 5px}.stat strong{display:block;font-size:clamp(19px,3vw,27px);font-variant-numeric:tabular-nums}.stat small{color:var(--muted);font-size:9px;letter-spacing:1.3px}
+.runcontrols{padding:14px;display:grid;grid-template-columns:1fr 1fr;gap:12px}
+label{color:#9eb2c1;font-size:10px;display:flex;justify-content:space-between;gap:8px;margin-bottom:7px}output{color:var(--cyan);font-variant-numeric:tabular-nums}
+input[type=range]{width:100%;accent-color:var(--cyan);height:19px;margin:0}
+select{width:100%;background:#09141e;color:#eaf4fa;border:1px solid #344b5d;border-radius:7px;padding:10px;font-size:11px}
+.actions{display:grid;grid-template-columns:1fr 1fr 1fr;gap:7px;padding:0 14px 14px}
+.btn{border:1px solid #395568;background:#152938;color:#eaf4fa;border-radius:7px;padding:11px 8px;font-weight:800;font-size:10px;letter-spacing:.45px}.btn.primary{background:linear-gradient(135deg,#087f98,#145c75);border-color:#22b5ce}.btn.danger{background:#38221e;border-color:#784b3b}
+.side{display:grid;gap:12px;align-content:start}.section{padding:14px}.section h2{font-size:10px;letter-spacing:1.7px;color:#bdd0dc;margin:0 0 11px}.line{display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px solid #243744;color:#90a8b8;font-size:10px}.line:last-child{border:0}.line b{color:#eff6fa;font-size:11px;font-variant-numeric:tabular-nums}.status{color:var(--orange)!important}.status.on{color:var(--green)!important}
+.bar{height:5px;background:#253947;border-radius:8px;overflow:hidden;margin:7px 0 10px}.bar i{height:100%;width:0;display:block;background:linear-gradient(90deg,#26a5c1,#78e5ef)}
+.gearButtons{display:grid;grid-template-columns:repeat(4,1fr);gap:5px;margin-top:9px}.gearKey{border:1px solid #344b5d;background:#0b151e;color:#9cb0bd;border-radius:5px;padding:8px 3px;font-weight:800}.gearKey.active{background:var(--cyan);color:#06171d;border-color:var(--cyan)}
+.shiftrow{display:flex;gap:7px;margin-top:8px}.shiftrow .btn{flex:1}
+.note{font-size:9px;color:#71899a;line-height:1.5;margin:10px 0 0}
+.nav{position:fixed;bottom:0;left:0;right:0;z-index:20;display:flex;justify-content:center;gap:4px;padding:8px max(8px,env(safe-area-inset-right)) calc(8px + env(safe-area-inset-bottom)) max(8px,env(safe-area-inset-left));background:#09121deF;border-top:1px solid var(--line);backdrop-filter:blur(16px)}
+.nav button{min-width:88px;max-width:160px;flex:1;border:1px solid transparent;background:transparent;color:#8198a8;border-radius:8px;padding:8px 6px;font-size:9px;font-weight:850;letter-spacing:.5px}.nav button.active{background:#15303d;border-color:#285366;color:var(--cyan)}
+.pagehead{display:flex;justify-content:space-between;align-items:end;gap:10px;margin:4px 2px 12px}.pagehead h1{font-size:19px;margin:0;letter-spacing:.3px}.pagehead p{font-size:10px;color:var(--muted);margin:4px 0 0}
+.builder{display:grid;grid-template-columns:minmax(0,1fr) minmax(300px,.75fr);gap:12px}
+.formgrid{display:grid;grid-template-columns:1fr 1fr;gap:12px;padding:15px}.field{min-width:0}.field label{margin-bottom:6px}.field input[type=number]{width:100%;background:#09141e;border:1px solid #344b5d;color:white;padding:10px;border-radius:7px}
+.specrow{display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid #243744;font-size:11px;color:var(--muted)}.specrow b{color:#e9f3f8}
+.dynowrap{padding:14px}.dynoTop{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}canvas.plot{width:100%;height:330px;background:#09131c;border:1px solid #263a49;border-radius:8px}
+.ecuWrap{padding:14px}.ecuCanvas{width:100%;height:340px;display:block;background:#09131c;border:1px solid #263a49;border-radius:8px;touch-action:manipulation}.legend{display:flex;gap:15px;color:var(--muted);font-size:10px;margin:10px 0}
+.dtc{display:grid;grid-template-columns:90px 1fr auto;gap:10px;align-items:center;padding:12px 0;border-bottom:1px solid #263a49;font-size:11px}.dtc b{color:var(--orange)}.dtc em{font-style:normal;color:var(--muted);font-size:9px}
+footer{max-width:1440px;margin:0 auto;padding:8px 14px 18px;color:#617b8c;font-size:9px;display:flex;justify-content:space-between;gap:10px}
+@media(max-width:900px){.gridmain,.builder{grid-template-columns:1fr}.viewer{height:390px}.side{grid-template-columns:1fr 1fr}.side .panel:first-child{grid-column:1/-1}}
+@media(max-width:560px){header{height:52px;padding:0 12px}.headright{font-size:8px}.brand{font-size:12px;letter-spacing:1.5px}main{padding:8px}.viewer{height:300px}.runcontrols,.formgrid{padding:11px;gap:10px}.section{padding:11px}.side{grid-template-columns:1fr}.side .panel:first-child{grid-column:auto}.actions{padding:0 11px 11px}.btn{padding:11px 5px;font-size:9px}.nav{gap:2px}.nav button{min-width:0;padding:9px 2px;font-size:8px}.stats .stat{padding:9px 2px}.stats small{font-size:8px}.pagehead h1{font-size:17px}.ecuCanvas{height:280px}canvas.plot{height:270px}}
 </style>
+<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"}}</script>
 </head>
 <body>
-<header class="top"><div class="brand">NEXUS <span>ENGINE LAB</span></div><div class="topright"><i class="live"></i><span>ENGINEERING SIMULATOR</span><span>•</span><span>RU</span></div></header>
-<main class="wrap">
-<section class="panel">
-<div class="visual"><div class="tag"><b>3D WORKSHOP</b> / REAL-TIME MECHANISM VIEW</div><div class="visualtools"><button class="tool" id="explode">РАЗОБРАТЬ</button><button class="tool" id="resetView">СБРОС ВИДА</button></div><canvas id="scene"></canvas><div class="viewhint">ПОВОРОТ — ПЕРЕТАСКИВАНИЕ · МАСШТАБ — ЩИПКОМ / КОЛЁСИКОМ</div></div>
-<div class="stats">
-<div class="stat"><strong id="rpm">0</strong><small>ОБ/МИН</small></div><div class="stat"><strong id="power">0</strong><small>Л.С.</small></div><div class="stat"><strong id="torque">0</strong><small>Н·М</small></div><div class="stat"><strong id="boost">0.00</strong><small>BAR НАДДУВА</small></div>
+<header><div class="brand">NEXUS <span>ENGINE LAB</span></div><div class="headright"><i class="led"></i><span>ENGINEERING SIMULATOR</span><span>·</span><span>RU / MOBILE</span></div></header>
+<main>
+<section class="screen visible" id="screen-run">
+<div class="gridmain">
+<div class="panel">
+<div class="viewer"><div class="viewlabel"><b>3D ENGINE CORE</b> / <span id="engineName">V8</span></div><div class="viewtools"><button class="mini" id="cutawayBtn">РАЗРЕЗ</button><button class="mini" id="resetCamera">КАМЕРА</button></div><canvas id="engineView"></canvas><div class="viewhint">ПОВОРОТ: ПЕРЕТАСКИВАНИЕ · МАСШТАБ: ЩИПКОМ</div></div>
+<div class="stats"><div class="stat"><strong id="rpmValue">0</strong><small>ОБ/МИН</small></div><div class="stat"><strong id="powerValue">0</strong><small>Л.С.</small></div><div class="stat"><strong id="torqueValue">0</strong><small>Н·М</small></div><div class="stat"><strong id="boostValue">0.00</strong><small>BAR</small></div></div>
+<div class="runcontrols">
+<div class="field"><label>ДРОССЕЛЬ <output id="throttleValue">0%</output></label><input id="throttle" type="range" min="0" max="100" value="0"></div>
+<div class="field"><label>ТОРМОЗ <output id="brakeValue">0%</output></label><input id="brake" type="range" min="0" max="100" value="0"></div>
+<div class="field"><label>КОРОБКА ПЕРЕДАЧ</label><select id="gearbox"><option value="manual6">МКПП · 6 ступеней</option><option value="dct7">DCT · 7 ступеней</option><option value="auto8">АКПП · 8 ступеней</option><option value="cvt">CVT</option></select></div>
+<div class="field"><label><span>АВТОМАТИЧЕСКОЕ ПЕРЕКЛЮЧЕНИЕ</span><input type="checkbox" id="autoMode"></label><div class="shiftrow"><button class="btn" id="gearDown">− ВНИЗ</button><button class="btn" id="gearUp">+ ВВЕРХ</button></div></div>
 </div>
-<div class="controls">
-<div class="field"><label>Архитектура двигателя</label><select id="engine"><option value="v8">V8 5.0 · 90°</option><option value="i4">Рядный-4 2.0</option><option value="i6">Рядный-6 3.0</option><option value="v10">V10 5.2 · 90°</option><option value="v12">V12 6.0 · 60°</option><option value="boxer6">Оппозитный-6 3.8</option></select></div>
-<div class="field"><label>Система наддува</label><select id="induction"><option value="single">Одна турбина</option><option value="twin">Twin-turbo</option><option value="sequential">Последовательный twin</option><option value="roots">Компрессор Roots</option><option value="none">Атмосферный</option></select></div>
-<div class="field"><label>Положение дросселя <output id="throttleVal">0%</output></label><input id="throttle" type="range" min="0" max="100" value="0"></div>
-<div class="field"><label>Целевое давление <output id="targetVal">1.0 bar</output></label><input id="target" type="range" min="0" max="25" value="10"></div>
-<div class="field"><label>Инерция турбины <output id="sizeVal">Средняя</output></label><input id="size" type="range" min="1" max="3" value="2"></div>
-<div class="field"><label>Ограничитель <output id="limitVal">7 200</output></label><input id="limit" type="range" min="4500" max="9500" step="100" value="7200"></div>
-<div class="field"><label>Коробка передач</label><select id="gearbox"><option value="manual6">6-ступ. механика</option><option value="dct7">7-ступ. DCT</option><option value="auto8">8-ступ. автомат</option><option value="cvt">CVT</option></select></div>
-<div class="field"><label>Режим трансмиссии</label><select id="drive"><option value="manual">Ручное переключение</option><option value="auto">Автоматическое</option></select></div>
+<div class="actions"><button class="btn primary" id="startBtn">▶ ЗАПУСТИТЬ ДВИГАТЕЛЬ</button><button class="btn" id="bovBtn">↗ СБРОС BOV</button><button class="btn danger" id="stopBtn">■ СТОП</button></div>
 </div>
-<div class="actions"><button class="btn primary" id="start">▶ ЗАПУСТИТЬ</button><button class="btn" id="bov">↗ СБРОС ДАВЛЕНИЯ</button><button class="btn warn" id="stop">■ ОСТАНОВИТЬ</button></div>
-</section>
 <aside class="side">
-<section class="panel section"><h2>СОСТОЯНИЕ ДВИГАТЕЛЯ</h2>
-<div class="metric"><span>Режим</span><b id="state">ОЖИДАНИЕ</b></div><div class="metric"><span>Температура ОЖ</span><b id="coolant">22 °C</b></div><div class="metric"><span>Температура впуска</span><b id="iat">22 °C</b></div><div class="metric"><span>Расход топлива</span><b id="fuel">0.0 л/ч</b></div><div class="metric"><span>Скорость автомобиля</span><b id="speed">0 км/ч</b></div><div class="metric"><span>Передача</span><b id="currentGear">N</b></div>
-<p class="note">Расчётная модель для интерактивного обучения и настройки. Значения не являются сертифицированными данными моторного стенда.</p></section>
-<section class="panel section"><h2>ТУРБОСИСТЕМА / НАДДУВ</h2>
-<div class="metric"><span>Скорость ротора</span><b id="spool">0 об/мин</b></div><div class="barline"><i id="spoolbar"></i></div>
-<div class="metric"><span>Wastegate</span><b id="wastegate">ЗАКРЫТ</b></div><div class="metric"><span>Blow-off</span><b id="bovstate">ЗАКРЫТ</b></div><div class="metric"><span>Давление коллектора</span><b id="manifold">1.00 bar</b></div><div class="metric"><span>Температура выхлопа</span><b id="egt">180 °C</b></div>
-<p class="note">Инерция ротора, нарастание давления, сброс через BOV и ограничение wastegate рассчитываются отдельно. Roots не имеет турбоямы.</p></section>
-<section class="panel section"><h2>ТРАНСМИССИЯ</h2><div class="metric"><span>Текущая передача</span><b id="gearLabel">N</b></div><div class="metric"><span>Обороты на выходе</span><b id="outputRpm">0 rpm</b></div>
-<div class="geargrid" id="gears"><div class="gear">R</div><div class="gear active">N</div><div class="gear">1</div><div class="gear">2</div><div class="gear">3</div><div class="gear">4</div><div class="gear">5</div><div class="gear">6</div><div class="gear">7</div><div class="gear">8</div></div>
-<div class="shift"><button class="btn" id="down">− ПЕРЕДАЧА</button><button class="btn" id="up">+ ПЕРЕДАЧА</button></div>
-<p class="note">Модели передаточных чисел условные и предназначены для демонстрации поведения двигателя и трансмиссии.</p></section>
+<div class="panel section"><h2>ТЕКУЩЕЕ СОСТОЯНИЕ</h2><div class="line"><span>Статус</span><b class="status" id="engineStatus">ОСТАНОВЛЕН</b></div><div class="line"><span>Передача</span><b id="gearValue">N</b></div><div class="line"><span>Скорость</span><b id="speedValue">0 км/ч</b></div><div class="line"><span>Охлаждающая жидкость</span><b id="coolantValue">22°</b></div><div class="line"><span>Масло</span><b id="oilValue">22°</b></div><div class="line"><span>Впускной воздух</span><b id="iatValue">22°</b></div><div class="line"><span>Температура выхлопа</span><b id="egtValue">180°</b></div></div>
+<div class="panel section"><h2>ТУРБОСИСТЕМА</h2><div class="line"><span>Обороты ротора</span><b id="spoolValue">0 rpm</b></div><div class="bar"><i id="spoolBar"></i></div><div class="line"><span>Wastegate</span><b id="wgStatus">ЗАКРЫТ</b></div><div class="line"><span>Blow-off</span><b id="bovStatus">ЗАКРЫТ</b></div><p class="note">Инерция ротора, нарастание давления и сброс наддува рассчитываются отдельно. Roots работает без турбоямы.</p></div>
+<div class="panel section"><h2>КОРОБКА ПЕРЕДАЧ</h2><div class="line"><span>Выбранная передача</span><b id="gearValue2">N</b></div><div class="gearButtons" id="gearButtons"></div><p class="note">Коснитесь передачи или используйте кнопки переключения. Автоматический режим доступен для всех коробок.</p></div>
 </aside>
+</div>
+</section>
+<section class="screen" id="screen-build">
+<div class="pagehead"><div><h1>КОНСТРУКТОР ДВИГАТЕЛЯ</h1><p>Настрой параметры базовой архитектуры и пересобери 3D-модель</p></div><button class="btn primary" id="applyBuild">ПРИМЕНИТЬ СБОРКУ</button></div>
+<div class="builder">
+<div class="panel"><div class="formgrid">
+<div class="field"><label>КОМПОНОВКА</label><select id="specLayout"><option value="V">V-образный</option><option value="I">Рядный</option><option value="BOXER">Оппозитный</option></select></div>
+<div class="field"><label>КОЛИЧЕСТВО ЦИЛИНДРОВ</label><select id="specCyl"><option>4</option><option>6</option><option selected>8</option><option>10</option><option>12</option></select></div>
+<div class="field"><label>ДИАМЕТР ЦИЛИНДРА, ММ</label><input type="number" id="specBore" min="60" max="120" value="86"></div>
+<div class="field"><label>ХОД ПОРШНЯ, ММ</label><input type="number" id="specStroke" min="60" max="120" value="86"></div>
+<div class="field"><label>СТЕПЕНЬ СЖАТИЯ</label><input type="number" id="specComp" min="7" max="16" step=".1" value="10.5"></div>
+<div class="field"><label>КЛАПАНОВ НА ЦИЛИНДР</label><select id="specValves"><option>2</option><option selected>4</option><option>5</option></select></div>
+<div class="field"><label>ФАЗА РАСПРЕДВАЛА, °</label><input type="number" id="specCam" min="180" max="330" value="260"></div>
+<div class="field"><label>ОТСЕЧКА, ОБ/МИН</label><input type="number" id="specRedline" min="3500" max="11000" step="100" value="7200"></div>
+<div class="field"><label>СИСТЕМА НАДДУВА</label><select id="specAsp"><option value="na">Атмосферный</option><option value="turbo" selected>Турбонаддув</option><option value="supercharger">Механический компрессор</option></select></div>
+<div class="field"><label>КОНФИГУРАЦИЯ ТУРБИН</label><select id="specTurbo"><option value="single">Single turbo</option><option value="twin">Twin-turbo</option><option value="sequential">Sequential twin</option><option value="roots">Roots / Twin-screw</option></select></div>
+<div class="field"><label>ЦЕЛЕВОЕ ДАВЛЕНИЕ <output id="specBoostOut">1.0 bar</output></label><input type="range" id="specBoost" min="0" max="2.5" step=".1" value="1"></div>
+<div class="field"><label>КОРОБКА ПЕРЕДАЧ</label><select id="gearbox"><option value="manual6">МКПП · 6</option><option value="dct7">DCT · 7</option><option value="auto8">АКПП · 8</option><option value="cvt">CVT</option></select></div>
+</div></div>
+<div class="panel section"><h2>РАСЧЁТНЫЕ ХАРАКТЕРИСТИКИ</h2><div class="specrow"><span>Архитектура</span><b id="specLayoutRead">V8</b></div><div class="specrow"><span>Рабочий объём</span><b id="specDisp">5.00 л</b></div><div class="specrow"><span>Средняя скорость поршня на отсечке</span><b id="specMean">20.6 м/с</b></div><div class="specrow"><span>Степень сжатия</span><b id="compressionRead">10.5:1</b></div><div class="specrow"><span>Ограничитель</span><b id="redlineRead">7 200 rpm</b></div><p class="note">Геометрические значения применяются к процедурной модели. Расчёт мощности и наддува — приближённая игровая модель, не CFD/FEA и не заводская калибровка.</p></div>
+</div>
+</section>
+<section class="screen" id="screen-ecu">
+<div class="pagehead"><div><h1>ECU · КАРТЫ УПРАВЛЕНИЯ</h1><p>Топливная карта нагрузки и оборотов · нажми на ячейку, чтобы обогатить смесь</p></div></div>
+<div class="panel ecuWrap"><canvas id="ecuCanvas" class="ecuCanvas" width="960" height="520"></canvas><div class="legend"><span>Низкая подача топлива</span><span>→</span><span>Высокая подача топлива</span></div><p class="note">Изменения карты влияют на условную модель сгорания. Полноценная модель ECU с отдельной картой угла зажигания будет расширяться отдельно.</p></div>
+</section>
+<section class="screen" id="screen-dyno">
+<div class="pagehead"><div><h1>ДИНАМОМЕТРИЧЕСКИЙ СТЕНД</h1><p>Запуск нагрузочного прогона и запись кривых момента и мощности</p></div></div>
+<div class="panel dynowrap"><div class="dynoTop"><button class="btn primary" id="dynoStart">▶ НАЧАТЬ ПРОГОН</button><button class="btn" id="dynoStop">■ ОСТАНОВИТЬ</button><button class="btn" id="dynoClear">ОЧИСТИТЬ ГРАФИК</button></div><canvas id="dynoCanvas" class="plot" width="1000" height="520"></canvas><div class="legend"><span style="color:#f0a05b">● Крутящий момент, Н·м</span><span style="color:#47d8eb">● Мощность, л.с.</span></div></div>
+</section>
+<section class="screen" id="screen-diag">
+<div class="pagehead"><div><h1>OBD · ДИАГНОСТИКА</h1><p>Контроль состояния двигателя и игровые коды неисправностей</p></div><button class="btn primary" id="repairBtn">УСТРАНИТЬ НЕИСПРАВНОСТИ</button></div>
+<div class="panel section"><h2>АКТИВНЫЕ КОДЫ / DTC</h2><div id="dtcList"></div><p class="note">Неисправности моделируются при перегреве, детонации, передуве и работе на отсечке. Коды являются игровыми индикаторами, а не сертифицированной OBD-диагностикой автомобиля.</p></div>
+</section>
 </main>
-<footer class="credit"><span>NEXUS ENGINE LAB · BROWSER SIMULATOR · MOBILE FIRST</span><span>ЗВУК В ЭТОЙ СБОРКЕ — СИНТЕЗИРОВАННАЯ ДЕМОНСТРАЦИЯ, НЕ ЗАПИСЬ РЕАЛЬНОГО МОТОРА</span></footer>
-<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"}}</script>
-<script type="module">
-import * as THREE from "three";
-import {OrbitControls} from "three/addons/controls/OrbitControls.js";
-const $=id=>document.getElementById(id);
-const canvas=$('scene');
-let renderer,scene,camera,orbit,engineRoot,crank,crankPins=[],pistonParts=[],rodParts=[],camshafts=[],valves=[],turboRotors=[],wastegateFlap,exploded=false;
-const mat=(c,m=0.65,r=0.32)=>new THREE.MeshStandardMaterial({color:c,metalness:m,roughness:r});
-const alloy=mat(0x9caab4,.86,.24),blockMat=mat(0x394957,.8,.34),dark=mat(0x17232d,.68,.36),steel=mat(0xc5d0d6,.9,.2),copper=mat(0xb66b3b,.78,.28),rubber=mat(0x11171b,.05,.78),red=mat(0x9b3427,.55,.36),gold=mat(0xb79a58,.78,.25);
-function mesh(geo,material,parent,pos){const o=new THREE.Mesh(geo,material);if(pos)o.position.set(...pos);parent.add(o);return o}
-function cylBetween(parent,a,b,r,material,r2=r,segments=16){const d=new THREE.Vector3().subVectors(b,a),o=mesh(new THREE.CylinderGeometry(r2,r,d.length(),segments),material,parent);o.position.copy(a).add(b).multiplyScalar(.5);o.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0),d.normalize());return o}
-function bolt(parent,x,y,z,r=.035){const b=mesh(new THREE.CylinderGeometry(r,r,.025,12),steel,parent,[x,y,z]);b.rotation.x=Math.PI/2;return b}
-function buildTurbo(parent,x,z,scale=1){const g=new THREE.Group();g.position.set(x,.35,z);g.scale.setScalar(scale);parent.add(g);
- const hot=mesh(new THREE.SphereGeometry(.58,32,20),mat(0x704537,.8,.34),g,[0,0,0]);hot.scale.set(1,.82,1.05);
- const cold=mesh(new THREE.TorusGeometry(.47,.13,16,40),alloy,g,[.72,0,0]);cold.rotation.y=Math.PI/2;
- const core=mesh(new THREE.CylinderGeometry(.25,.25,.62,32),steel,g,[.36,0,0]);core.rotation.z=Math.PI/2;
- const shaft=mesh(new THREE.CylinderGeometry(.07,.07,1.18,20),gold,g,[.36,0,0]);shaft.rotation.z=Math.PI/2;
- const wheelGroup=new THREE.Group();wheelGroup.position.set(.95,0,0);g.add(wheelGroup);
- mesh(new THREE.CylinderGeometry(.18,.18,.09,32),gold,wheelGroup,[0,0,0]).rotation.z=Math.PI/2;
- for(let i=0;i<12;i++){const a=i*Math.PI/6;const blade=mesh(new THREE.BoxGeometry(.42,.045,.09),steel,wheelGroup,[Math.cos(a)*.21,Math.sin(a)*.21,0]);blade.rotation.z=a+.48;}
- const turbineGroup=new THREE.Group();turbineGroup.position.set(-.3,0,0);g.add(turbineGroup);
- mesh(new THREE.CylinderGeometry(.16,.16,.08,24),copper,turbineGroup,[0,0,0]).rotation.z=Math.PI/2;
- for(let i=0;i<11;i++){const a=i*Math.PI*2/11;const b=mesh(new THREE.BoxGeometry(.36,.055,.11),copper,turbineGroup,[Math.cos(a)*.19,Math.sin(a)*.19,0]);b.rotation.z=a+.35}
- const actuator=mesh(new THREE.CylinderGeometry(.14,.14,.4,20),alloy,g,[.1,.65,.48]);actuator.rotation.x=Math.PI/2;
- const rod=mesh(new THREE.CylinderGeometry(.025,.025,.52,12),steel,g,[.1,.36,.25]);rod.rotation.x=-.55;
- const flap=mesh(new THREE.BoxGeometry(.24,.035,.22),copper,g,[-.55,-.12,0]);
- turboRotors.push(wheelGroup,turbineGroup);wastegateFlap=flap;
- for(let i=0;i<8;i++){const a=i*Math.PI/4;bolt(g,Math.cos(a)*.52,Math.sin(a)*.52,.04,.022)}
- return g;
-}
-function buildEngine(type='v8'){
- if(engineRoot)scene.remove(engineRoot);engineRoot=new THREE.Group();scene.add(engineRoot);pistonParts=[];rodParts=[];crankPins=[];camshafts=[];valves=[];turboRotors=[];wastegateFlap=null;
- const count=({v8:8,i4:4,i6:6,v10:10,v12:12,boxer6:6})[type]||8;
- const banks=type==='i4'||type==='i6'?[0]:type==='boxer6'?[-1,1]:[-1,1];
- const perBank=count/banks.length,spacing=count>=10?.43:.52,angle=type==='boxer6'?1.48:(type==='i4'||type==='i6'?0:.66);
- const block=mesh(new THREE.BoxGeometry(Math.max(2.8,perBank*spacing+.7),.78,1.25),blockMat,engineRoot,[0,-.18,0]);
- const sump=mesh(new THREE.CylinderGeometry(.75,.84,Math.max(2.5,perBank*spacing),32),dark,engineRoot,[0,-.76,0]);sump.rotation.z=Math.PI/2;
- for(let i=0;i<8;i++){const rib=mesh(new THREE.BoxGeometry(.12,.1,1.28),alloy,engineRoot,[-1.15+i*.33,-.55,0]);}
- const crankGroup=new THREE.Group();engineRoot.add(crankGroup);crank=crankGroup;
- mesh(new THREE.CylinderGeometry(.13,.13,perBank*spacing+1.05,24),steel,crankGroup,[0,-.37,0]).rotation.z=Math.PI/2;
- for(let j=0;j<perBank;j++){
-   const x=(j-(perBank-1)/2)*spacing;
-   const phase=j*Math.PI*(type==='v10'?0.8:1);
-   const webA=mesh(new THREE.CylinderGeometry(.25,.25,.11,24),copper,crankGroup,[x,-.37,.22]);webA.rotation.z=Math.PI/2;
-   const webB=mesh(new THREE.CylinderGeometry(.25,.25,.11,24),copper,crankGroup,[x,-.37,-.22]);webB.rotation.z=Math.PI/2;
-   const pin=mesh(new THREE.CylinderGeometry(.095,.095,.38,20),gold,crankGroup,[x,-.37,.28]);pin.rotation.z=Math.PI/2;crankPins.push({pin,phase,x});
- }
- for(const side of banks){
-   const bank=new THREE.Group();bank.position.set(0,.28,side*.15);bank.rotation.x=side*angle;engineRoot.add(bank);
-   const bankLen=perBank*spacing+.6;
-   mesh(new THREE.BoxGeometry(bankLen,.42,.92),alloy,bank,[0,.5,0]);
-   mesh(new THREE.BoxGeometry(bankLen,.24,.88),dark,bank,[0,.83,0]);
-   // Valve covers and fasteners
-   mesh(new THREE.BoxGeometry(bankLen+.08,.16,.78),mat(0x667987,.8,.25),bank,[0,1.08,0]);
-   for(let j=0;j<perBank;j++){
-     const x=(j-(perBank-1)/2)*spacing,phase=(j+(side<0?0:perBank))*Math.PI;
-     const sleeve=mesh(new THREE.CylinderGeometry(.205,.205,.65,32),dark,bank,[x,.22,0]);
-     const lip=mesh(new THREE.TorusGeometry(.19,.018,10,32),steel,bank,[x,.55,0]);lip.rotation.x=Math.PI/2;
-     const piston=new THREE.Group();piston.position.set(x,-.04,0);bank.add(piston);
-     mesh(new THREE.CylinderGeometry(.174,.185,.18,32),alloy,piston,[0,0,0]);
-     for(let k=0;k<3;k++){const ring=mesh(new THREE.TorusGeometry(.18,.009,8,32),dark,piston,[0,.055-k*.035,0]);ring.rotation.x=Math.PI/2;}
-     mesh(new THREE.CylinderGeometry(.055,.055,.09,16),gold,piston,[0,-.02,0]);
-     pistonParts.push({group:piston,phase,bank,side,x});
-     const rod=mesh(new THREE.CylinderGeometry(.045,.075,.56,16),copper,bank,[x,-.42,0]);rodParts.push({rod,bank,phase,x,side});
-     // two camshafts with bearing caps and lobes
-     for(let c=0;c<2;c++){
-       const z=(c===0?-.24:.24);
-       if(j===0){const cam=mesh(new THREE.CylinderGeometry(.065,.065,bankLen+.35,24),gold,bank,[0,1.36,z]);cam.rotation.z=Math.PI/2;camshafts.push(cam);
-         for(let n=0;n<perBank;n++){const xx=(n-(perBank-1)/2)*spacing;for(let l=0;l<2;l++){const lob=mesh(new THREE.SphereGeometry(.085,12,10),copper,bank,[xx,1.36,z+(l?0.035:-.035)]);lob.scale.set(1,.65,.8);}}
-       }
-       const cap=mesh(new THREE.BoxGeometry(.13,.16,.12),steel,bank,[x,1.26,z]);
-     }
-     for(let v=0;v<4;v++){const vz=(v<2?-.22:.22),vx=x+(v%2?-.07:.07);
-       const stem=mesh(new THREE.CylinderGeometry(.018,.018,.28,10),steel,bank,[vx,.98,vz]);
-       const head=mesh(new THREE.CylinderGeometry(.055,.055,.035,16),alloy,bank,[vx,.82,vz]);valves.push({stem,head,phase,v});
-     }
-     for(let b=0;b<6;b++)bolt(bank,x-.16+(b%3)*.16,.98,(b<3?-.34:.34),.018);
-   }
-   // intake/exhaust runners on each bank
-   const intake=mesh(new THREE.BoxGeometry(bankLen*.82,.22,.42),mat(0x2b414e,.72,.28),bank,[0,1.48,side*.22]);
-   for(let j=0;j<perBank;j++){const x=(j-(perBank-1)/2)*spacing;const runner=mesh(new THREE.CylinderGeometry(.07,.09,.5,20),alloy,bank,[x,1.26,side*.21]);runner.rotation.z=.38;}
-   const header=new THREE.Group();bank.add(header);
-   for(let j=0;j<perBank;j++){const x=(j-(perBank-1)/2)*spacing;
-     const curve=new THREE.CatmullRomCurve3([new THREE.Vector3(x,.35,side*.25),new THREE.Vector3(x,.12,side*.38),new THREE.Vector3(x-.12,-.05,side*.5),new THREE.Vector3(-side*.8,-.18,side*.62)]);
-     mesh(new THREE.TubeGeometry(curve,24,.055,10,false),copper,header);
-   }
- }
- // front timing drive, flywheel and accessories
- const front=mesh(new THREE.CylinderGeometry(.42,.42,.18,48),steel,engineRoot,[-(perBank*spacing/2+.4),-.35,0]);front.rotation.z=Math.PI/2;
- const fly=mesh(new THREE.CylinderGeometry(.56,.56,.18,48),dark,engineRoot,[(perBank*spacing/2+.48),-.37,0]);fly.rotation.z=Math.PI/2;
- for(let i=0;i<12;i++){const a=i*Math.PI/6;const p=mesh(new THREE.BoxGeometry(.08,.05,.18),gold,engineRoot,[-(perBank*spacing/2+.4),-.35+Math.sin(a)*.45,Math.cos(a)*.45]);p.rotation.x=a;}
- const pulley=mesh(new THREE.CylinderGeometry(.28,.28,.16,40),alloy,engineRoot,[-(perBank*spacing/2+.55),-.7,.55]);pulley.rotation.z=Math.PI/2;
- const belt=mesh(new THREE.TorusGeometry(.45,.035,10,48),rubber,engineRoot,[-(perBank*spacing/2+.55),-.7,.55]);belt.rotation.y=Math.PI/2;
- buildTurbo(engineRoot,perBank*spacing/2+.9,.85,.9);
- // intake plenum, throttle body and intercooler
- const plenLen=perBank*spacing*.9;const plenum=mesh(new THREE.CylinderGeometry(.28,.28,plenLen,32),alloy,engineRoot,[0,1.58,0]);plenum.rotation.z=Math.PI/2;mesh(new THREE.SphereGeometry(.28,24,16),alloy,engineRoot,[-plenLen/2,1.58,0]);mesh(new THREE.SphereGeometry(.28,24,16),alloy,engineRoot,[plenLen/2,1.58,0]);
- const throttle=mesh(new THREE.CylinderGeometry(.22,.22,.3,32),dark,engineRoot,[perBank*spacing*.55,1.58,0]);throttle.rotation.z=Math.PI/2;
- const intercooler=mesh(new THREE.BoxGeometry(1.1,.42,.22),mat(0x516675,.8,.3),engineRoot,[perBank*spacing*.5,.55,1.1]);
- for(let i=0;i<11;i++)mesh(new THREE.BoxGeometry(.025,.34,.24),steel,engineRoot,[perBank*spacing*.5-.5+i*.1,.55,1.1]);
- engineRoot.position.y=-.3;
- engineRoot.rotation.y=-.3;
-}
-function init3D(){
- renderer=new THREE.WebGLRenderer({canvas,antialias:true,alpha:false,powerPreference:'high-performance'});renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,1.6));renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.1;
- scene=new THREE.Scene();scene.background=new THREE.Color(0x0a141e);scene.fog=new THREE.Fog(0x0a141e,8,20);
- camera=new THREE.PerspectiveCamera(36,1,.1,60);camera.position.set(5.3,3.5,6.7);
- orbit=new OrbitControls(camera,renderer.domElement);orbit.enableDamping=true;orbit.dampingFactor=.06;orbit.target.set(0,.25,0);orbit.minDistance=3;orbit.maxDistance=12;
- scene.add(new THREE.HemisphereLight(0xd5efff,0x1b2730,2.1));
- const key=new THREE.DirectionalLight(0xffffff,3.4);key.position.set(4,7,5);scene.add(key);
- const rim=new THREE.DirectionalLight(0x54b9e6,2.3);rim.position.set(-5,2,-4);scene.add(rim);
- const floor=mesh(new THREE.CircleGeometry(7,80),mat(0x111d27,.3,.68),scene,[0,-1.4,0]);floor.rotation.x=-Math.PI/2;
- const grid=new THREE.GridHelper(12,24,0x284052,0x1b2b38);grid.position.y=-1.39;scene.add(grid);
- buildEngine($('engine').value);
- function resize(){const w=canvas.clientWidth,h=canvas.clientHeight;renderer.setSize(w,h,false);camera.aspect=w/Math.max(h,1);camera.updateProjectionMatrix()}new ResizeObserver(resize).observe(canvas);resize();
- let last=performance.now();function render(now){requestAnimationFrame(render);const dt=Math.min((now-last)/1000,.04);last=now;
- const angle=sim.rpm/60*Math.PI*2*dt; if(crank)crank.rotation.x+=angle;
- pistonParts.forEach(p=>{const theta=sim.phase+p.phase;const r=.22,l=.56;const y=-.04+r*Math.cos(theta)+Math.sqrt(Math.max(.01,l*l-r*r*Math.sin(theta)**2));p.group.position.y=y;});
- rodParts.forEach(r=>{const theta=sim.phase+r.phase,crankY=-.37+.22*Math.cos(theta),crankZ=.22*Math.sin(theta);const a=new THREE.Vector3(r.x,-.05,0),b=new THREE.Vector3(r.x,crankY,crankZ);r.rod.position.copy(a).add(b).multiplyScalar(.5);r.rod.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0),b.sub(a).normalize());});
- turboRotors.forEach((t,i)=>t.rotation.x+=dt*(sim.spool*95)*(i?1.04:1));
- if(wastegateFlap)wastegateFlap.rotation.y=sim.wastegate*.55;
- camshafts.forEach((c,i)=>c.rotation.x=0);
- if(!exploded)engineRoot.position.y=-.3;orbit.update();renderer.render(scene,camera);
- }requestAnimationFrame(render);
-}
-const sim={on:false,rpm:0,boost:0,spool:0,temp:22,iat:22,egt:180,throttle:0,phase:0,wastegate:0,bov:false,gear:0,speed:0,shiftTimer:0,torque:0,power:0};
-const specs={v8:{cyl:8,disp:5,red:7200,torque:510,idle:850},i4:{cyl:4,disp:2,red:7200,torque:300,idle:850},i6:{cyl:6,disp:3,red:7000,torque:420,idle:800},v10:{cyl:10,disp:5.2,red:8500,torque:540,idle:900},v12:{cyl:12,disp:6,red:8000,torque:620,idle:850},boxer6:{cyl:6,disp:3.8,red:7200,torque:430,idle:850}};
-const ratios={manual6:[-3.2,3.45,2.12,1.45,1.0,.82,.68],dct7:[-3.1,3.1,2.18,1.58,1.22,1,.84,.72],auto8:[-3.0,4.7,3.13,2.1,1.67,1.29,1, .84,.67],cvt:[-3.0,3.2,2.7,2.3,1.9,1.6,1.3,1.0, .8]};
-function torqueCurve(rpm,s,boost){const x=rpm/s.red;const shape=.68+.42*Math.exp(-Math.pow((x-.48)/.32,2))-.2*Math.pow(Math.max(0,x-.78),1.2);return s.torque*Math.max(.35,shape)*(1+boost*.42)}
-function gearCount(){return ratios[$('gearbox').value].length-1}
-function gearName(){return sim.gear<0?'R':sim.gear===0?'N':String(sim.gear)}
-function setGear(n){sim.gear=Math.max(-1,Math.min(gearCount(),n));$('currentGear').textContent=gearName();$('gearLabel').textContent=gearName();[...$('gears').children].forEach((e,i)=>e.classList.toggle('active',e.textContent===gearName()));}
-function shift(dir){if(sim.shiftTimer>0)return;setGear(sim.gear+dir);sim.shiftTimer=.24}
-$('up').onclick=()=>shift(1);$('down').onclick=()=>shift(-1);setGear(0);
-$('engine').onchange=()=>{const old=sim.rpm;buildEngine($('engine').value);sim.rpm=sim.on?Math.max(850,old):0;};
-$('throttle').oninput=e=>{sim.throttle=+e.target.value/100;$('throttleVal').textContent=e.target.value+'%';};
-$('target').oninput=e=>$('targetVal').textContent=(1+e.target.value/10).toFixed(1)+' bar';
-$('size').oninput=e=>$('sizeVal').textContent=['','Малая','Средняя','Большая'][e.target.value];
-$('limit').oninput=e=>$('limitVal').textContent=(+e.target.value).toLocaleString('ru-RU');
-$('gearbox').onchange=()=>{setGear(0)};
-$('drive').onchange=()=>{if($('drive').value==='auto')setGear(1)};
-$('start').onclick=()=>{sim.on=true;sim.throttle=Math.max(sim.throttle,.02);$('state').textContent='РАБОТАЕТ'};
-$('stop').onclick=()=>{sim.on=false;sim.throttle=0;$('throttle').value=0;$('throttleVal').textContent='0%';$('state').textContent='ОСТАНОВЛЕН'};
-$('bov').onclick=()=>{if(sim.boost>.08){sim.boost*=.25;sim.bov=true;$('bovstate').textContent='ОТКРЫТ';setTimeout(()=>{sim.bov=false;$('bovstate').textContent='ЗАКРЫТ'},500)}};
-$('explode').onclick=()=>{exploded=!exploded;$('explode').textContent=exploded?'СОБРАТЬ':'РАЗОБРАТЬ';engineRoot.position.y=exploded?-.05:-.3;engineRoot.scale.setScalar(exploded?1.08:1)};
-$('resetView').onclick=()=>{camera.position.set(5.3,3.5,6.7);orbit.target.set(0,.25,0);orbit.update()};
-let audioCtx=null,master=null,low=null,engineOsc=null,subOsc=null;
-function initAudio(){if(audioCtx){audioCtx.resume();return}const AC=window.AudioContext||window.webkitAudioContext;if(!AC)return;audioCtx=new AC();master=audioCtx.createGain();master.gain.value=.2;master.connect(audioCtx.destination);low=audioCtx.createBiquadFilter();low.type='lowpass';low.frequency.value=650;low.connect(master);engineOsc=audioCtx.createOscillator();engineOsc.type='sawtooth';const g=audioCtx.createGain();g.gain.value=0;engineOsc.connect(g);g.connect(low);engineOsc.start();engineOsc.g=g;subOsc=audioCtx.createOscillator();subOsc.type='triangle';const sg=audioCtx.createGain();sg.gain.value=0;subOsc.connect(sg);sg.connect(master);subOsc.start();subOsc.g=sg}
-$('start').addEventListener('click',initAudio);
-let pulseClock=0;
-function pulse(){if(!audioCtx||!sim.on)return;const t=audioCtx.currentTime,o=audioCtx.createOscillator(),g=audioCtx.createGain();o.type='triangle';o.frequency.setValueAtTime(90+sim.rpm*.065,t);o.frequency.exponentialRampToValueAtTime(45+sim.rpm*.035,t+.07);g.gain.setValueAtTime(.001,t);g.gain.exponentialRampToValueAtTime(.055,t+.006);g.gain.exponentialRampToValueAtTime(.001,t+.11);o.connect(g);g.connect(master);o.start(t);o.stop(t+.12)}
-let previous=performance.now();
-function tick(now){const dt=Math.min((now-previous)/1000,.05);previous=now;const spec=specs[$('engine').value],ind=$('induction').value,target=+ $('target').value/10,size=+$('size').value,limit=+$('limit').value;
- const load=sim.on?sim.throttle:0,boostCap=ind==='none'?0:target;
- const spoolWant=sim.on&&load>.08?Math.min(1,load*(sim.rpm/Math.max(1,spec.red))**.45*1.7):0;
- const inertia=ind==='roots'?14:(size===1?5.8:size===2?2.7:1.4);
- sim.spool+=(spoolWant-sim.spool)*Math.min(1,dt*(spoolWant>sim.spool?inertia:5.2));
- let boostWant=boostCap*sim.spool;
- if(ind==='twin')boostWant*=1.03;
- if(ind==='sequential')boostWant*=sim.rpm<3200?.62:1;
- if(ind==='roots')boostWant=boostCap*load*.9;
- const over=sim.boost>boostCap;sim.wastegate=boostCap>0?Math.max(0,Math.min(1,(sim.boost-boostCap*.9)/(boostCap*.25))):0;
- sim.boost+=(boostWant-sim.boost)*Math.min(1,dt*(boostWant>sim.boost?2.5:5.8));
- if(sim.bov)sim.boost*=Math.max(0,1-dt*8);
- const goal=sim.on?spec.idle+load*(limit-spec.idle)*(.93+sim.boost*.035):0;
- sim.rpm+=(goal-sim.rpm)*Math.min(1,dt*(goal>sim.rpm?1.75:3.4));
- if(sim.rpm>limit){sim.rpm=limit-90;sim.throttle*=.15}
- sim.torque=sim.on?torqueCurve(sim.rpm,spec,sim.boost)*(.25+.75*load):0;
- sim.power=sim.torque*sim.rpm/7127;
- const gears=ratios[$('gearbox').value],ratio=sim.gear>0?gears[sim.gear]:sim.gear<0?Math.abs(gears[0]):0;
- const wheelRpm=ratio?sim.rpm/(ratio*3.7):0;
- const speed=wheelRpm*.00205*60;sim.speed+=(speed-sim.speed)*Math.min(1,dt*3);
- if($('drive').value==='auto'&&sim.on&&sim.gear>0&&sim.shiftTimer<=0){if(sim.rpm>limit*.83&&sim.gear<gearCount())shift(1);else if(sim.rpm<2100&&sim.gear>1)shift(-1)}
- sim.shiftTimer=Math.max(0,sim.shiftTimer-dt);
- sim.temp+=(sim.on?(92+load*15-sim.temp)*dt*.025:(22-sim.temp)*dt*.012);
- sim.iat+=(22+sim.boost*25-sim.iat)*dt*.55;
- sim.egt+=(sim.on?(350+load*550+sim.boost*100-sim.egt)*dt*.5:(180-sim.egt)*dt*.25);
- $('rpm').textContent=Math.round(sim.rpm).toLocaleString('ru-RU');$('power').textContent=Math.round(sim.power).toLocaleString('ru-RU');$('torque').textContent=Math.round(sim.torque).toLocaleString('ru-RU');$('boost').textContent=sim.boost.toFixed(2);
- $('coolant').textContent=Math.round(sim.temp)+' °C';$('iat').textContent=Math.round(sim.iat)+' °C';$('fuel').textContent=(sim.on?(1.2+load*spec.disp*3.5):0).toFixed(1)+' л/ч';$('speed').textContent=Math.round(sim.speed)+' км/ч';$('spool').textContent=Math.round(sim.spool*180000).toLocaleString('ru-RU')+' об/мин';$('spoolbar').style.width=(sim.spool*100)+'%';$('wastegate').textContent=sim.wastegate>.1?'ОТКРЫТ':'ЗАКРЫТ';$('manifold').textContent=(1+sim.boost).toFixed(2)+' bar';$('egt').textContent=Math.round(sim.egt)+' °C';$('outputRpm').textContent=Math.round(wheelRpm*3.7).toLocaleString('ru-RU')+' rpm';
- if(audioCtx&&sim.on){const t=audioCtx.currentTime,fire=sim.rpm/60*spec.cyl/2;engineOsc.frequency.setTargetAtTime(Math.max(35,fire*2.1),t,.05);engineOsc.g.gain.setTargetAtTime(.018+load*.09,t,.05);subOsc.frequency.setTargetAtTime(28+sim.rpm/60*1.8,t,.06);subOsc.g.gain.setTargetAtTime(.012+load*.04,t,.06);low.frequency.setTargetAtTime(300+sim.rpm*.16+load*1100,t,.08);pulseClock+=dt;if(pulseClock>1/Math.max(1,fire)){pulseClock=0;pulse()}}
- sim.phase+=dt*sim.rpm/60*Math.PI*2;requestAnimationFrame(tick)}
-init3D();requestAnimationFrame(tick);
-</script>
+<nav class="nav"><button data-tab="run" class="active">▶ СИМУЛЯЦИЯ</button><button data-tab="build">⚙ СБОРКА</button><button data-tab="ecu">ECU</button><button data-tab="dyno">ДИНО</button><button data-tab="diag">OBD</button></nav>
+<footer><span>NEXUS ENGINE LAB · BROWSER SIMULATOR</span><span>СИНТЕЗИРОВАННЫЙ ЗВУКОВОЙ ДВИЖОК · НЕ ЗАПИСЬ РЕАЛЬНОГО ДВИГАТЕЛЯ</span></footer>
+<script type="module" src="./app.js"></script>
 </body></html>
