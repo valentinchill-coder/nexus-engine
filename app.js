@@ -10,7 +10,7 @@ const state = {running:false,rpm:0,throttle:0,brake:0,boost:0,spool:0,coolant:22
 const ratios = {manual6:[3.45,2.12,1.45,1.00,.82,.68],dct7:[3.10,2.18,1.58,1.22,1,.84,.72],auto8:[4.70,3.13,2.10,1.67,1.29,1,.84,.67],cvt:[3.2,2.7,2.3,1.9,1.6,1.3,1,.8]};
 const firingOrders = {4:[1,3,4,2],6:[1,5,3,6,2,4],8:[1,8,4,3,6,5,7,2],10:[1,6,5,10,2,7,3,8,4,9],12:[1,7,5,11,3,9,6,12,2,8,4,10]};
 let scene,camera,renderer,orbit,root,crankGroup,parts=[],pistons=[],rods=[],valves=[],cams=[],turboWheels=[],turboFlap,cutawayParts=[],exploded=false,activeTab="run",ecuMode="fuel";
-let audio=null,audioMaster=null,exhaustFilter=null,intakeFilter=null,turboOsc=null,turboGain=null,nextPulse=0,pulseIndex=0,audioLoopActive=false;
+let audio=null,audioMaster=null,exhaustFilter=null,intakeFilter=null,turboOsc=null,turboGain=null,nextPulse=0,pulseIndex=0,audioLoopActive=false,engineSample=null;
 const mats = {};
 function material(name,color,metal=.7,rough=.3){return mats[name] ||= new THREE.MeshStandardMaterial({color,metalness:metal,roughness:rough});}
 const M={block:material("block",0x52616b,.82,.3),head:material("head",0x8998a2,.86,.23),dark:material("dark",0x17232d,.68,.36),steel:material("steel",0xc4cdd2,.92,.2),piston:material("piston",0xb5c0c7,.88,.22),copper:material("copper",0xb56d42,.8,.27),gold:material("gold",0xb59a5a,.84,.23),rubber:material("rubber",0x101519,.05,.82),red:material("red",0x8e3026,.6,.35),blue:material("blue",0x287c9b,.7,.27)};
@@ -145,6 +145,22 @@ function buildEngine(){
  updateSpecs();
 }
 function engineTitle(){return cfg.layout==="V"?"V"+cfg.cyl:cfg.layout==="BOXER"?"BOXER "+cfg.cyl:"I"+cfg.cyl;}
+function loadEngineSample(){
+ const wasPlaying=!!(engineSample&&!engineSample.paused);
+ if(engineSample){engineSample.pause();engineSample.src="";}
+ let sample;
+ if(cfg.cyl===8){sample={name:"V8 · field recording",creator:"overmedium",url:"https://cdn.freesound.org/previews/651/651534_2396512-hq.ogg"};}
+ else if(cfg.layout==="BOXER"&&cfg.cyl===4){sample={name:"Flat-4 turbo · Subaru WRX proxy",creator:"ulose2piranha",url:"https://cdn.freesound.org/previews/273/273334_4168822-hq.ogg"};}
+ else if(cfg.cyl===12){sample={name:"V12 · Rolls-Royce Merlin",creator:"squashy555",url:"https://cdn.freesound.org/previews/276/276597_1149179-hq.mp3"};}
+ else if(cfg.cyl===6&&cfg.aspiration!=="na"){sample={name:"Turbo six · Supra dyno proxy",creator:"editboy23",url:"https://cdn.freesound.org/previews/496/496171_1784475-hq.ogg"};}
+ else if(cfg.layout==="I"&&cfg.cyl===4){sample={name:"Inline-4 · Honda Civic proxy",creator:"thepodcastdoctor",url:"https://cdn.freesound.org/previews/487/487553_9945386-hq.mp3"};}
+ else if(cfg.cyl===6&&cfg.layout==="BOXER"){sample={name:"Flat-six · Porsche 911 proxy",creator:"mharo",url:"https://cdn.freesound.org/previews/55/55727_267249-hq.mp3"};}
+ else {sample={name:"Engine recording · V8 proxy",creator:"overmedium",url:"https://cdn.freesound.org/previews/651/651534_2396512-hq.ogg"};}
+ engineSample=new Audio();engineSample.preload="none";engineSample.loop=true;engineSample.playsInline=true;engineSample.volume=0;engineSample.playbackRate=.85;engineSample.src=sample.url;
+ const label=$("soundSource");if(label)label.textContent=sample.name+" · CC0 / "+sample.creator;
+ if(wasPlaying)engineSample.play().catch(()=>{});
+}
+
 function updateSpecs(){
  $("specLayout").value=cfg.layout;$("specLayoutRead").textContent=engineTitle();$("specGearbox").value=cfg.gearbox;$("specTurboSize").value=cfg.turboSize;$("specFiring").value=cfg.firing;$("specFuel").value=cfg.fuel;$("specExhaust").value=cfg.exhaust;$("exhaustOut").textContent=cfg.exhaust+" см";$("specCyl").value=cfg.cyl;$("specBore").value=cfg.bore;$("specStroke").value=cfg.stroke;$("specComp").value=cfg.compression;$("specValves").value=cfg.valves;$("specCam").value=cfg.cam;$("specRedline").value=cfg.redline;$("specAsp").value=cfg.aspiration;$("specTurbo").value=cfg.turbo;$("specBoost").value=cfg.boostTarget;$("specBoostOut").textContent=cfg.boostTarget.toFixed(1)+" bar";
  $("specDisp").textContent=(Math.PI/4*(cfg.bore/10)**2*(cfg.stroke/10)*cfg.cyl/1000).toFixed(2)+" л";
@@ -199,7 +215,7 @@ function tickPhysics(dt){
  if(state.rpm>cfg.redline){state.limiter=true;state.rpm=cfg.redline-80;state.damage=clamp(state.damage+dt*.001,0,1);}else state.limiter=false;
  if(cfg.aspiration!=="na"&&state.boost>cfg.boostTarget*1.08){state.damage=clamp(state.damage+dt*.004,0,1);state.knock=clamp(state.knock+dt*.1,0,1);}else state.knock=Math.max(0,state.knock-dt*.15);
  const rpmFactor=gearRatio?state.rpm/(gearRatio*3.7):0;const speedTarget=gearRatio?rpmFactor*.00205*60:0;state.speed+=(speedTarget-state.speed)*Math.min(1,dt*2.2);
- state.power=state.torque*state.rpm/7127;\n if(audio&&turboOsc&&turboGain){turboOsc.frequency.setTargetAtTime(420+state.spool*3600,audio.currentTime,.06);turboGain.gain.setTargetAtTime(state.spool*.025,audio.currentTime,.08);}
+ state.power=state.torque*state.rpm/7127;\n if(engineSample){engineSample.playbackRate=.72+.72*clamp((state.rpm-700)/Math.max(1,cfg.redline-700),0,1);engineSample.volume=state.running?clamp(.12+state.throttle*.58,0,.7):0;}\n if(audio&&turboOsc&&turboGain){turboOsc.frequency.setTargetAtTime(420+state.spool*3600,audio.currentTime,.06);turboGain.gain.setTargetAtTime(state.spool*.025,audio.currentTime,.08);}
  state.coolant+=(state.running?(88+state.throttle*28-state.coolant)*dt*.022:(22-state.coolant)*dt*.012);
  state.oil+=(state.running?(90+state.throttle*18-state.oil)*dt*.018:(22-state.oil)*dt*.01);
  state.iat+=(22+state.boost*28-state.iat)*dt*.4;
@@ -293,8 +309,8 @@ function tab(name){
 }
 function bind(){
  document.querySelectorAll("[data-tab]").forEach(b=>b.onclick=()=>tab(b.dataset.tab));
- $("startBtn").onclick=()=>{state.running=true;state.rpm=Math.max(state.rpm,850);$("startBtn").textContent="ДВИГАТЕЛЬ РАБОТАЕТ";initAudio();audio.resume();nextPulse=audio.currentTime;audioLoop();};
- $("stopBtn").onclick=()=>{state.running=false;state.throttle=0;state.rpm=0;$("startBtn").textContent="ЗАПУСТИТЬ ДВИГАТЕЛЬ";};
+ $("startBtn").onclick=()=>{state.running=true;state.rpm=Math.max(state.rpm,850);$("startBtn").textContent="ДВИГАТЕЛЬ РАБОТАЕТ";initAudio();audio.resume();if(engineSample){engineSample.play().catch(()=>{});}};
+ $("stopBtn").onclick=()=>{state.running=false;state.throttle=0;state.rpm=0;if(engineSample){engineSample.pause();engineSample.currentTime=0;}$("startBtn").textContent="ЗАПУСТИТЬ ДВИГАТЕЛЬ";};
  $("throttle").oninput=e=>state.throttle=+e.target.value/100;$("brake").oninput=e=>state.brake=+e.target.value/100;
  $("gearUp").onclick=()=>shift(1);$("gearDown").onclick=()=>shift(-1);$("autoMode").onchange=e=>state.auto=e.target.checked;
  $("bovBtn").onclick=()=>{state.bov=true;playBov();setTimeout(()=>state.bov=false,650);};
