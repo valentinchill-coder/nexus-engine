@@ -10,7 +10,7 @@ const state = {running:false,rpm:0,throttle:0,brake:0,boost:0,spool:0,coolant:22
 const ratios = {manual6:[3.45,2.12,1.45,1.00,.82,.68],dct7:[3.10,2.18,1.58,1.22,1,.84,.72],auto8:[4.70,3.13,2.10,1.67,1.29,1,.84,.67],cvt:[3.2,2.7,2.3,1.9,1.6,1.3,1,.8]};
 const firingOrders = {4:[1,3,4,2],6:[1,5,3,6,2,4],8:[1,8,4,3,6,5,7,2],10:[1,6,5,10,2,7,3,8,4,9],12:[1,7,5,11,3,9,6,12,2,8,4,10]};
 let scene,camera,renderer,orbit,root,crankGroup,parts=[],pistons=[],rods=[],valves=[],cams=[],turboWheels=[],turboFlap,cutawayParts=[],exploded=false,activeTab="run";
-let audio=null,audioMaster=null,exhaustFilter=null,intakeFilter=null,nextPulse=0;
+let audio=null,audioMaster=null,exhaustFilter=null,intakeFilter=null,turboOsc=null,turboGain=null,nextPulse=0,pulseIndex=0;
 const mats = {};
 function material(name,color,metal=.7,rough=.3){return mats[name] ||= new THREE.MeshStandardMaterial({color,metalness:metal,roughness:rough});}
 const M={block:material("block",0x52616b,.82,.3),head:material("head",0x8998a2,.86,.23),dark:material("dark",0x17232d,.68,.36),steel:material("steel",0xc4cdd2,.92,.2),piston:material("piston",0xb5c0c7,.88,.22),copper:material("copper",0xb56d42,.8,.27),gold:material("gold",0xb59a5a,.84,.23),rubber:material("rubber",0x101519,.05,.82),red:material("red",0x8e3026,.6,.35),blue:material("blue",0x287c9b,.7,.27)};
@@ -195,7 +195,7 @@ function tickPhysics(dt){
  if(state.rpm>cfg.redline){state.limiter=true;state.rpm=cfg.redline-80;state.damage=clamp(state.damage+dt*.001,0,1);}else state.limiter=false;
  if(cfg.aspiration!=="na"&&state.boost>cfg.boostTarget*1.08){state.damage=clamp(state.damage+dt*.004,0,1);state.knock=clamp(state.knock+dt*.1,0,1);}else state.knock=Math.max(0,state.knock-dt*.15);
  const rpmFactor=gearRatio?state.rpm/(gearRatio*3.7):0;const speedTarget=gearRatio?rpmFactor*.00205*60:0;state.speed+=(speedTarget-state.speed)*Math.min(1,dt*2.2);
- state.power=state.torque*state.rpm/7127;
+ state.power=state.torque*state.rpm/7127;\n if(audio&&turboOsc&&turboGain){turboOsc.frequency.setTargetAtTime(420+state.spool*3600,audio.currentTime,.06);turboGain.gain.setTargetAtTime(state.spool*.025,audio.currentTime,.08);}
  state.coolant+=(state.running?(88+state.throttle*28-state.coolant)*dt*.022:(22-state.coolant)*dt*.012);
  state.oil+=(state.running?(90+state.throttle*18-state.oil)*dt*.018:(22-state.oil)*dt*.01);
  state.iat+=(22+state.boost*28-state.iat)*dt*.4;
@@ -222,7 +222,7 @@ function initAudio(){
  if(audio){audio.resume();return;}
  const AC=window.AudioContext||window.webkitAudioContext;if(!AC)return;audio=new AC();audioMaster=audio.createGain();audioMaster.gain.value=.48;audioMaster.connect(audio.destination);
  exhaustFilter=audio.createBiquadFilter();exhaustFilter.type="lowpass";exhaustFilter.frequency.value=850;exhaustFilter.Q.value=.8;exhaustFilter.connect(audioMaster);
- intakeFilter=audio.createBiquadFilter();intakeFilter.type="bandpass";intakeFilter.frequency.value=700;intakeFilter.Q.value=.5;intakeFilter.connect(audioMaster);
+ intakeFilter=audio.createBiquadFilter();intakeFilter.type="bandpass";intakeFilter.frequency.value=700;intakeFilter.Q.value=.5;intakeFilter.connect(audioMaster);\n turboOsc=audio.createOscillator();turboOsc.type="triangle";turboGain=audio.createGain();turboGain.gain.value=0;const turboFilter=audio.createBiquadFilter();turboFilter.type="bandpass";turboFilter.frequency.value=2200;turboFilter.Q.value=1.2;turboOsc.connect(turboFilter);turboFilter.connect(turboGain);turboGain.connect(audioMaster);turboOsc.start();
 }
 function schedulePulse(time){
  if(!audio||!state.running)return;
@@ -264,7 +264,7 @@ function bind(){
  $("stopBtn").onclick=()=>{state.running=false;state.throttle=0;state.rpm=0;$("startBtn").textContent="ЗАПУСТИТЬ ДВИГАТЕЛЬ";};
  $("throttle").oninput=e=>state.throttle=+e.target.value/100;$("brake").oninput=e=>state.brake=+e.target.value/100;
  $("gearUp").onclick=()=>shift(1);$("gearDown").onclick=()=>shift(-1);$("autoMode").onchange=e=>state.auto=e.target.checked;
- $("bovBtn").onclick=()=>{state.bov=true;setTimeout(()=>state.bov=false,650);};
+ $("bovBtn").onclick=()=>{state.bov=true;playBov();setTimeout(()=>state.bov=false,650);};
  $("cutawayBtn").onclick=()=>{exploded=!exploded;$("cutawayBtn").textContent=exploded?"ОБЫЧНЫЙ ВИД":"РАЗРЕЗ";cutawayParts.forEach(o=>{o.material.transparent=exploded;o.material.opacity=exploded ? 0.16 : 1;o.material.depthWrite=!exploded;});};
  $("resetCamera").onclick=()=>{camera.position.set(5.4,4.1,6.5);orbit.target.set(0,.25,0);orbit.update();};
  $("specLayout").onchange=e=>cfg.layout=e.target.value;
