@@ -1,5 +1,6 @@
 import * as THREE from "three";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
+import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 
 const $ = (id) => document.getElementById(id);
 const clamp = (v,a,b) => Math.max(a,Math.min(b,v));
@@ -10,7 +11,7 @@ const state = {running:false,rpm:0,throttle:0,brake:0,boost:0,spool:0,coolant:22
 const ratios = {manual6:[3.45,2.12,1.45,1.00,.82,.68],dct7:[3.10,2.18,1.58,1.22,1,.84,.72],auto8:[4.70,3.13,2.10,1.67,1.29,1,.84,.67],cvt:[3.2,2.7,2.3,1.9,1.6,1.3,1,.8]};
 const firingOrders = {4:[1,3,4,2],6:[1,5,3,6,2,4],8:[1,8,4,3,6,5,7,2],10:[1,6,5,10,2,7,3,8,4,9],12:[1,7,5,11,3,9,6,12,2,8,4,10]};
 let scene,camera,renderer,orbit,root,crankGroup,parts=[],pistons=[],rods=[],valves=[],cams=[],turboWheels=[],turboFlap,cutawayParts=[],exploded=false,activeTab="run",ecuMode="fuel";
-let audio=null,audioMaster=null,exhaustFilter=null,intakeFilter=null,turboOsc=null,turboGain=null,nextPulse=0,pulseIndex=0,audioLoopActive=false,engineSample=null;
+let audio=null,audioMaster=null,exhaustFilter=null,intakeFilter=null,turboOsc=null,turboGain=null,nextPulse=0,pulseIndex=0,audioLoopActive=false,engineSample=null,turboAssetPromise=null,detailedTurboRotors=[];
 const mats = {};
 function material(name,color,metal=.7,rough=.3){return mats[name] ||= new THREE.MeshStandardMaterial({color,metalness:metal,roughness:rough});}
 const M={block:material("block",0x52616b,.82,.3),head:material("head",0x8998a2,.86,.23),dark:material("dark",0x17232d,.68,.36),steel:material("steel",0xc4cdd2,.92,.2),piston:material("piston",0xb5c0c7,.88,.22),copper:material("copper",0xb56d42,.8,.27),gold:material("gold",0xb59a5a,.84,.23),rubber:material("rubber",0x101519,.05,.82),red:material("red",0x8e3026,.6,.35),blue:material("blue",0x287c9b,.7,.27)};
@@ -33,6 +34,23 @@ function init3D(){
  function draw(){requestAnimationFrame(draw);const dt=clock.getDelta();animateEngine(dt);orbit.update();renderer.render(scene,camera);}
  const clock=new THREE.Clock();requestAnimationFrame(draw);
 }
+function loadDetailedTurbo(parent,x,z){
+ const fallback=buildTurbo(parent,x,z);
+ if(turboAssetPromise===null){
+  turboAssetPromise=new Promise(resolve=>{
+   new GLTFLoader().load("https://engx3d.com/models/turbo.glb",g=>resolve(g),undefined,()=>resolve(null));
+  });
+ }
+ turboAssetPromise.then(g=>{
+  if(!g||parent!==root)return;
+  const model=g.scene.clone(true),box=new THREE.Box3().setFromObject(model),size=box.getSize(new THREE.Vector3()),center=box.getCenter(new THREE.Vector3());
+  const scale=1.08/Math.max(size.x,size.y,size.z);model.scale.setScalar(scale);
+  model.position.set(x-center.x*scale,.42-center.y*scale,z-center.z*scale);
+  model.traverse(o=>{if(o.isMesh){o.castShadow=true;o.receiveShadow=true;}if(/compressor.*wheel|turbine.*wheel|rotor|shaft/i.test(o.name))detailedTurboRotors.push(o);});
+  parent.add(model);fallback.visible=false;
+ });
+ return fallback;
+}
 function buildTurbo(parent,x,z){
  const g=new THREE.Group();g.position.set(x,.35,z);parent.add(g);
  const shell=mesh(g,new THREE.SphereGeometry(.52,32,24),M.dark,[0,0,0]);shell.scale.set(1,.82,1.05);
@@ -54,7 +72,7 @@ function buildTurbo(parent,x,z){
 }
 function buildEngine(){
  if(!scene)return;
- if(root)scene.remove(root);exploded=false;root=new THREE.Group();scene.add(root);parts=[];pistons=[];rods=[];valves=[];cams=[];turboWheels=[];cutawayParts=[];turboFlap=null;
+ if(root)scene.remove(root);exploded=false;root=new THREE.Group();scene.add(root);parts=[];pistons=[];rods=[];valves=[];cams=[];turboWheels=[];detailedTurboRotors=[];cutawayParts=[];turboFlap=null;
  const n=cfg.cyl,per=cfg.layout==="I"?n:Math.ceil(n/2),banks=cfg.layout==="I"?[0]:cfg.layout==="BOXER"?[-1.56,1.56]:[-.48,.48],spacing=clamp(.42+cfg.bore/1000,.46,.56),len=(per-1)*spacing+.9,bankAngle=cfg.layout==="V"?.48:cfg.layout==="BOXER"?1.56:0;
  // Deep sump and crankcase
  mesh(root,new THREE.BoxGeometry(len+1,.58,1.4),M.block,[0,-.38,0]);
@@ -175,7 +193,7 @@ function animateEngine(dt){
  rods.forEach(r=>{const ang=a+r.phase,rad=cfg.stroke/2000;const top=new THREE.Vector3(r.x,.06+rad*Math.cos(ang),0),bot=new THREE.Vector3(r.x,-.45+rad*Math.cos(ang),rad*Math.sin(ang));r.mesh.position.copy(top).add(bot).multiplyScalar(.5);r.mesh.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0),bot.sub(top).normalize());});
  cams.forEach(c=>c.rotation.x=a*.5);
  valves.forEach(v=>{const lift=Math.max(0,Math.sin(a*.5+v.phase+(v.v%2)*Math.PI/2))*.075;v.stem.position.y=.78-lift;v.head.position.y=.64-lift;});
- turboWheels.forEach((w,i)=>{w.rotation.x+=dt*(state.spool*150)*(i%2?1.02:1);});
+ turboWheels.forEach((w,i)=>{w.rotation.x+=dt*(state.spool*150)*(i%2?1.02:1);});\n detailedTurboRotors.forEach((w,i)=>{w.rotation.x+=dt*(state.spool*165)*(i%2?1.02:1);});
  if(turboFlap)turboFlap.rotation.y=state.boost>cfg.boostTarget*.9?.35:0;
  root.scale.setScalar(1);
 }
