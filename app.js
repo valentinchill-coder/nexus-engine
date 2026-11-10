@@ -136,6 +136,7 @@ function buildEngine(){
     const vz=(v<cfg.valves/2?-.23:.23),vx=x+(v%2?-.07:.07);
     const stem=cyl(bank,.018,.018,.28,M.steel,[vx,.78,vz],12);
     const head=cyl(bank,.05,.05,.035,M.head,[vx,.64,vz],20);
+    valveSpring(bank,vx,.82,vz);
     valves.push({stem,head,phase,v});
    }
    // head bolts
