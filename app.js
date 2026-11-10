@@ -9,7 +9,7 @@ const cfg = {...defaults};
 const state = {running:false,rpm:0,throttle:0,brake:0,boost:0,spool:0,coolant:22,oil:22,egt:180,iat:22,gear:0,speed:0,torque:0,power:0,damage:0,knock:0,phase:0,clutch:1,limiter:false,auto:false,bov:false,gearTimer:0,dyno:false,dynoData:[],lastPulse:0};
 const ratios = {manual6:[3.45,2.12,1.45,1.00,.82,.68],dct7:[3.10,2.18,1.58,1.22,1,.84,.72],auto8:[4.70,3.13,2.10,1.67,1.29,1,.84,.67],cvt:[3.2,2.7,2.3,1.9,1.6,1.3,1,.8]};
 const firingOrders = {4:[1,3,4,2],6:[1,5,3,6,2,4],8:[1,8,4,3,6,5,7,2],10:[1,6,5,10,2,7,3,8,4,9],12:[1,7,5,11,3,9,6,12,2,8,4,10]};
-let scene,camera,renderer,orbit,root,crankGroup,parts=[],pistons=[],rods=[],valves=[],cams=[],turboWheels=[],turboFlap,cutawayParts=[],exploded=false,activeTab="run";
+let scene,camera,renderer,orbit,root,crankGroup,parts=[],pistons=[],rods=[],valves=[],cams=[],turboWheels=[],turboFlap,cutawayParts=[],exploded=false,activeTab="run",ecuMode="fuel";
 let audio=null,audioMaster=null,exhaustFilter=null,intakeFilter=null,turboOsc=null,turboGain=null,nextPulse=0,pulseIndex=0;
 const mats = {};
 function material(name,color,metal=.7,rough=.3){return mats[name] ||= new THREE.MeshStandardMaterial({color,metalness:metal,roughness:rough});}
@@ -146,7 +146,7 @@ function buildEngine(){
 }
 function engineTitle(){return cfg.layout==="V"?"V"+cfg.cyl:cfg.layout==="BOXER"?"BOXER "+cfg.cyl:"I"+cfg.cyl;}
 function updateSpecs(){
- $("specLayout").value=cfg.layout;$("specLayoutRead").textContent=engineTitle();$("specGearbox").value=cfg.gearbox;$("specTurboSize").value=cfg.turboSize;$("specFiring").value=cfg.firing;$("specCyl").value=cfg.cyl;$("specBore").value=cfg.bore;$("specStroke").value=cfg.stroke;$("specComp").value=cfg.compression;$("specValves").value=cfg.valves;$("specCam").value=cfg.cam;$("specRedline").value=cfg.redline;$("specAsp").value=cfg.aspiration;$("specTurbo").value=cfg.turbo;$("specBoost").value=cfg.boostTarget;$("specBoostOut").textContent=cfg.boostTarget.toFixed(1)+" bar";
+ $("specLayout").value=cfg.layout;$("specLayoutRead").textContent=engineTitle();$("specGearbox").value=cfg.gearbox;$("specTurboSize").value=cfg.turboSize;$("specFiring").value=cfg.firing;$("specFuel").value=cfg.fuel;$("specExhaust").value=cfg.exhaust;$("specCyl").value=cfg.cyl;$("specBore").value=cfg.bore;$("specStroke").value=cfg.stroke;$("specComp").value=cfg.compression;$("specValves").value=cfg.valves;$("specCam").value=cfg.cam;$("specRedline").value=cfg.redline;$("specAsp").value=cfg.aspiration;$("specTurbo").value=cfg.turbo;$("specBoost").value=cfg.boostTarget;$("specBoostOut").textContent=cfg.boostTarget.toFixed(1)+" bar";
  $("specDisp").textContent=(Math.PI/4*(cfg.bore/10)**2*(cfg.stroke/10)*cfg.cyl/1000).toFixed(2)+" л";
  $("specMean").textContent=(2*cfg.stroke/1000*cfg.redline/60).toFixed(1)+" м/с";
  $("redlineRead").textContent=fmt(cfg.redline);$("compressionRead").textContent=cfg.compression.toFixed(1)+":1";
@@ -289,13 +289,13 @@ function bind(){
  $("specLayout").onchange=e=>cfg.layout=e.target.value;
  $("specCyl").onchange=e=>cfg.cyl=+e.target.value;
  ["specBore","specStroke","specComp","specValves","specCam","specRedline","specBoost"].forEach(id=>$(id).oninput=e=>{const key={specBore:"bore",specStroke:"stroke",specComp:"compression",specValves:"valves",specCam:"cam",specRedline:"redline",specBoost:"boostTarget"}[id];cfg[key]=+e.target.value;updateSpecs();});
- $("specAsp").onchange=e=>{cfg.aspiration=e.target.value;if(cfg.aspiration==="supercharger"){cfg.turbo="roots";$("specTurbo").value="roots";}};$("specTurbo").onchange=e=>cfg.turbo=e.target.value;$("specTurboSize").onchange=e=>cfg.turboSize=+e.target.value;$("specFiring").onchange=e=>cfg.firing=e.target.value;
+ $("specAsp").onchange=e=>{cfg.aspiration=e.target.value;if(cfg.aspiration==="supercharger"){cfg.turbo="roots";$("specTurbo").value="roots";}};$("specTurbo").onchange=e=>cfg.turbo=e.target.value;$("specTurboSize").onchange=e=>cfg.turboSize=+e.target.value;$("specFiring").onchange=e=>cfg.firing=e.target.value;$("specFuel").onchange=e=>cfg.fuel=e.target.value;$("specExhaust").oninput=e=>cfg.exhaust=+e.target.value;
  $("applyBuild").onclick=()=>{buildEngine();tab("run");};
  $("gearbox").onchange=e=>{cfg.gearbox=e.target.value;state.gear=0;renderGears();};$("specGearbox").onchange=e=>{cfg.gearbox=e.target.value;state.gear=0;renderGears();};
  $("dynoStart").onclick=()=>{state.dyno=true;state.dynoData=[];state.running=true;state.throttle=.3;drawDyno();};
  $("dynoStop").onclick=()=>{state.dyno=false;state.throttle=0;};
  $("dynoClear").onclick=()=>{state.dynoData=[];drawDyno();};
- $("ecuCanvas").onclick=e=>{const r=e.currentTarget.getBoundingClientRect(),x=Math.floor((e.clientX-r.left)/r.width*12),y=Math.floor((e.clientY-r.top)/r.height*8);cfg.ecuFuel??=Array.from({length:8},(_,i)=>Array.from({length:12},(_,j)=>1+(7-i)/8*.16-j/11*.08));cfg.ecuFuel[y][x]=clamp(cfg.ecuFuel[y][x]+.02,.7,1.4);drawEcu();};
+ $("ecuCanvas").onclick=e=>{const r=e.currentTarget.getBoundingClientRect(),x=clamp(Math.floor((e.clientX-r.left)/r.width*12),0,11),y=clamp(Math.floor((e.clientY-r.top)/r.height*8),0,7);if(ecuMode==="fuel"){cfg.ecuFuel??=Array.from({length:8},(_,i)=>Array.from({length:12},(_,j)=>1+(7-i)/8*.16-j/11*.08));cfg.ecuFuel[y][x]=clamp(cfg.ecuFuel[y][x]+.02,.7,1.4);}else{cfg.ecuSpark??=Array.from({length:8},(_,i)=>Array.from({length:12},(_,j)=>1+(7-i)/8*.035-j/11*.02));cfg.ecuSpark[y][x]=clamp(cfg.ecuSpark[y][x]+.01,.88,1.08);}drawEcu();};\n $("ecuFuelBtn").onclick=()=>{ecuMode="fuel";$("ecuFuelBtn").classList.add("primary");$("ecuSparkBtn").classList.remove("primary");drawEcu();};$("ecuSparkBtn").onclick=()=>{ecuMode="spark";$("ecuSparkBtn").classList.add("primary");$("ecuFuelBtn").classList.remove("primary");drawEcu();};
  $("repairBtn").onclick=()=>{state.damage=0;state.knock=0;state.coolant=88;buildDiagnostic();};
 }
 function loop(){let last=performance.now();function frame(now){const dt=Math.min(.04,(now-last)/1000);last=now;tickPhysics(dt);requestAnimationFrame(frame);}requestAnimationFrame(frame);}
