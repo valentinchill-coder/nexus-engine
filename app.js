@@ -265,7 +265,7 @@ function bind(){
  $("throttle").oninput=e=>state.throttle=+e.target.value/100;$("brake").oninput=e=>state.brake=+e.target.value/100;
  $("gearUp").onclick=()=>shift(1);$("gearDown").onclick=()=>shift(-1);$("autoMode").onchange=e=>state.auto=e.target.checked;
  $("bovBtn").onclick=()=>{state.bov=true;setTimeout(()=>state.bov=false,650);};
- $("cutawayBtn").onclick=()=>{exploded=!exploded;$("cutawayBtn").textContent=exploded?"ОБЫЧНЫЙ ВИД":"РАЗРЕЗ";cutawayParts.forEach(o=>{o.material.transparent=exploded;o.material.opacity=exploded?.16:1;o.material.depthWrite=!exploded;});};
+ $("cutawayBtn").onclick=()=>{exploded=!exploded;$("cutawayBtn").textContent=exploded?"ОБЫЧНЫЙ ВИД":"РАЗРЕЗ";cutawayParts.forEach(o=>{o.material.transparent=exploded;o.material.opacity=exploded ? 0.16 : 1;o.material.depthWrite=!exploded;});};
  $("resetCamera").onclick=()=>{camera.position.set(5.4,4.1,6.5);orbit.target.set(0,.25,0);orbit.update();};
  $("specLayout").onchange=e=>cfg.layout=e.target.value;
  $("specCyl").onchange=e=>cfg.cyl=+e.target.value;
