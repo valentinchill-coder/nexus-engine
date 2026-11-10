@@ -186,7 +186,7 @@ function tickPhysics(dt){
  let combustion=0;
  for(let i=0;i<cfg.cyl;i++){const ph=(state.phase+(i*Math.PI*4/cfg.cyl))%(Math.PI*4);const burn=Math.exp(-Math.pow((((ph+Math.PI*4)%(Math.PI*4))-Math.PI*.18)/.34,2));combustion+=burn;}
  const pulseFactor=.82+.18*combustion/Math.max(1,cfg.cyl/2);
- state.torque=state.running?baseTorque*(.2+.8*state.throttle)*pulseFactor*(1-state.damage*.5):0;
+ state.torque=state.running?baseTorque*(.15+.85*state.throttle)*pulseFactor*(1-state.damage*.5):0;
  const gearRatio=state.gear>0?(ratios[cfg.gearbox][state.gear-1]||1):0;
  const load=state.brake*.7+(gearRatio?Math.max(0,state.speed)*.018:0);
  const idleAssist=state.running?clamp((850-state.rpm)*.012,-12,12):0;\n const net=state.running?(state.torque*state.clutch*.035-load*18-(state.rpm*.0025)+idleAssist): -state.rpm*2.2;
