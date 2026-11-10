@@ -142,7 +142,7 @@ function buildEngine(){
  const cap=cyl(root,.09,.09,.08,M.gold,[0,1.65,0]);
  root.position.y=-.22;root.rotation.y=-.25;
  $("engineName").textContent=engineTitle();
- updateSpecs();
+ updateSpecs();loadEngineSample();
 }
 function engineTitle(){return cfg.layout==="V"?"V"+cfg.cyl:cfg.layout==="BOXER"?"BOXER "+cfg.cyl:"I"+cfg.cyl;}
 function loadEngineSample(){
