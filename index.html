@@ -69,9 +69,10 @@ button{cursor:pointer;font:inherit}.btn{border:1px solid #385267;background:#152
 </aside>
 </main>
 <footer class="credit"><span>NEXUS ENGINE LAB · BROWSER SIMULATOR · MOBILE FIRST</span><span>ЗВУК В ЭТОЙ СБОРКЕ — СИНТЕЗИРОВАННАЯ ДЕМОНСТРАЦИЯ, НЕ ЗАПИСЬ РЕАЛЬНОГО МОТОРА</span></footer>
+<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"}}</script>
 <script type="module">
-import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
-import {OrbitControls} from 'https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/controls/OrbitControls.js';
+import * as THREE from "three";
+import {OrbitControls} from "three/addons/controls/OrbitControls.js";
 const $=id=>document.getElementById(id);
 const canvas=$('scene');
 let renderer,scene,camera,orbit,engineRoot,crank,crankPins=[],pistonParts=[],rodParts=[],camshafts=[],valves=[],turboRotors=[],wastegateFlap,exploded=false;
