@@ -193,7 +193,8 @@ function animateEngine(dt){
  rods.forEach(r=>{const ang=a+r.phase,rad=cfg.stroke/2000;const top=new THREE.Vector3(r.x,.06+rad*Math.cos(ang),0),bot=new THREE.Vector3(r.x,-.45+rad*Math.cos(ang),rad*Math.sin(ang));r.mesh.position.copy(top).add(bot).multiplyScalar(.5);r.mesh.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0),bot.sub(top).normalize());});
  cams.forEach(c=>c.rotation.x=a*.5);
  valves.forEach(v=>{const lift=Math.max(0,Math.sin(a*.5+v.phase+(v.v%2)*Math.PI/2))*.075;v.stem.position.y=.78-lift;v.head.position.y=.64-lift;});
- turboWheels.forEach((w,i)=>{w.rotation.x+=dt*(state.spool*150)*(i%2?1.02:1);});\n detailedTurboRotors.forEach((w,i)=>{w.rotation.x+=dt*(state.spool*165)*(i%2?1.02:1);});
+ turboWheels.forEach((w,i)=>{w.rotation.x+=dt*(state.spool*150)*(i%2?1.02:1);});
+ detailedTurboRotors.forEach((w,i)=>{w.rotation.x+=dt*(state.spool*165)*(i%2?1.02:1);});
  if(turboFlap)turboFlap.rotation.y=state.boost>cfg.boostTarget*.9?.35:0;
  root.scale.setScalar(1);
 }
@@ -227,19 +228,24 @@ function tickPhysics(dt){
  state.torque=state.running?baseTorque*(.15+.85*state.throttle)*pulseFactor*(1-state.damage*.5):0;
  const gearRatio=state.gear>0?(ratios[cfg.gearbox][state.gear-1]||1):0;
  const load=state.brake*.7+(gearRatio?Math.max(0,state.speed)*.018:0);
- const idleAssist=state.running?clamp((850-state.rpm)*.012,-12,12):0;\n const net=state.running?(state.torque*state.clutch*.035-load*18-(state.rpm*.0025)+idleAssist): -state.rpm*2.2;
+ const idleAssist=state.running?clamp((850-state.rpm)*.012,-12,12):0;
+ const net=state.running?(state.torque*state.clutch*.035-load*18-(state.rpm*.0025)+idleAssist): -state.rpm*2.2;
  state.rpm=clamp(state.rpm+net*dt,0,cfg.redline*1.05);
  if(state.running&&state.rpm<850&&state.throttle<.04)state.rpm=Math.max(0,state.rpm-dt*180);
  if(state.rpm>cfg.redline){state.limiter=true;state.rpm=cfg.redline-80;state.damage=clamp(state.damage+dt*.001,0,1);}else state.limiter=false;
  if(cfg.aspiration!=="na"&&state.boost>cfg.boostTarget*1.08){state.damage=clamp(state.damage+dt*.004,0,1);state.knock=clamp(state.knock+dt*.1,0,1);}else state.knock=Math.max(0,state.knock-dt*.15);
  const rpmFactor=gearRatio?state.rpm/(gearRatio*3.7):0;const speedTarget=gearRatio?rpmFactor*.00205*60:0;state.speed+=(speedTarget-state.speed)*Math.min(1,dt*2.2);
- state.power=state.torque*state.rpm/7127;\n if(engineSample){engineSample.playbackRate=.72+.72*clamp((state.rpm-700)/Math.max(1,cfg.redline-700),0,1);engineSample.volume=state.running?clamp(.12+state.throttle*.58,0,.7):0;}\n if(audio&&turboOsc&&turboGain){turboOsc.frequency.setTargetAtTime(420+state.spool*3600,audio.currentTime,.06);turboGain.gain.setTargetAtTime(state.spool*.025,audio.currentTime,.08);}
+ state.power=state.torque*state.rpm/7127;
+ if(engineSample){engineSample.playbackRate=.72+.72*clamp((state.rpm-700)/Math.max(1,cfg.redline-700),0,1);engineSample.volume=state.running?clamp(.12+state.throttle*.58,0,.7):0;}
+ if(audio&&turboOsc&&turboGain){turboOsc.frequency.setTargetAtTime(420+state.spool*3600,audio.currentTime,.06);turboGain.gain.setTargetAtTime(state.spool*.025,audio.currentTime,.08);}
  state.coolant+=(state.running?(88+state.throttle*28-state.coolant)*dt*.022:(22-state.coolant)*dt*.012);
  state.oil+=(state.running?(90+state.throttle*18-state.oil)*dt*.018:(22-state.oil)*dt*.01);
  state.iat+=(22+state.boost*28-state.iat)*dt*.4;
- state.egt+=(state.running?(280+state.throttle*620+state.boost*90-state.egt)*dt*.38:(180-state.egt)*dt*.18);\n if(state.coolant>112)state.damage=clamp(state.damage+dt*.002,0,1);
+ state.egt+=(state.running?(280+state.throttle*620+state.boost*90-state.egt)*dt*.38:(180-state.egt)*dt*.18);
+ if(state.coolant>112)state.damage=clamp(state.damage+dt*.002,0,1);
  state.phase+=dt*state.rpm/60*Math.PI*2;
- if(state.auto&&state.running&&state.gear===0&&state.gearTimer<=0)shift(1);\n if(state.auto&&state.running&&state.gearTimer<=0&&gearRatio){if(state.rpm>cfg.redline*.84&&state.gear<ratios[cfg.gearbox].length)shift(1);else if(state.rpm<1900&&state.gear>1)shift(-1);}
+ if(state.auto&&state.running&&state.gear===0&&state.gearTimer<=0)shift(1);
+ if(state.auto&&state.running&&state.gearTimer<=0&&gearRatio){if(state.rpm>cfg.redline*.84&&state.gear<ratios[cfg.gearbox].length)shift(1);else if(state.rpm<1900&&state.gear>1)shift(-1);}
  state.gearTimer=Math.max(0,state.gearTimer-dt);
  if(state.dyno&&state.running&&state.rpm>1000&&Math.floor(performance.now()/140)!==state.lastPulse){state.lastPulse=Math.floor(performance.now()/140);state.dynoData.push({rpm:state.rpm,t:state.torque,p:state.power});drawDyno();}
  updateDashboard();
@@ -343,7 +349,8 @@ function bind(){
  $("dynoStart").onclick=()=>{state.dyno=true;state.dynoData=[];state.running=true;state.throttle=.3;drawDyno();};
  $("dynoStop").onclick=()=>{state.dyno=false;state.throttle=0;};
  $("dynoClear").onclick=()=>{state.dynoData=[];drawDyno();};
- $("ecuCanvas").onclick=e=>{const r=e.currentTarget.getBoundingClientRect(),x=clamp(Math.floor((e.clientX-r.left)/r.width*12),0,11),y=clamp(Math.floor((e.clientY-r.top)/r.height*8),0,7);if(ecuMode==="fuel"){cfg.ecuFuel??=Array.from({length:8},(_,i)=>Array.from({length:12},(_,j)=>1+(7-i)/8*.16-j/11*.08));cfg.ecuFuel[y][x]=clamp(cfg.ecuFuel[y][x]+.02,.7,1.4);}else{cfg.ecuSpark??=Array.from({length:8},(_,i)=>Array.from({length:12},(_,j)=>1+(7-i)/8*.035-j/11*.02));cfg.ecuSpark[y][x]=clamp(cfg.ecuSpark[y][x]+.01,.88,1.08);}drawEcu();};\n $("ecuFuelBtn").onclick=()=>{ecuMode="fuel";$("ecuFuelBtn").classList.add("primary");$("ecuSparkBtn").classList.remove("primary");drawEcu();};$("ecuSparkBtn").onclick=()=>{ecuMode="spark";$("ecuSparkBtn").classList.add("primary");$("ecuFuelBtn").classList.remove("primary");drawEcu();};
+ $("ecuCanvas").onclick=e=>{const r=e.currentTarget.getBoundingClientRect(),x=clamp(Math.floor((e.clientX-r.left)/r.width*12),0,11),y=clamp(Math.floor((e.clientY-r.top)/r.height*8),0,7);if(ecuMode==="fuel"){cfg.ecuFuel??=Array.from({length:8},(_,i)=>Array.from({length:12},(_,j)=>1+(7-i)/8*.16-j/11*.08));cfg.ecuFuel[y][x]=clamp(cfg.ecuFuel[y][x]+.02,.7,1.4);}else{cfg.ecuSpark??=Array.from({length:8},(_,i)=>Array.from({length:12},(_,j)=>1+(7-i)/8*.035-j/11*.02));cfg.ecuSpark[y][x]=clamp(cfg.ecuSpark[y][x]+.01,.88,1.08);}drawEcu();};
+ $("ecuFuelBtn").onclick=()=>{ecuMode="fuel";$("ecuFuelBtn").classList.add("primary");$("ecuSparkBtn").classList.remove("primary");drawEcu();};$("ecuSparkBtn").onclick=()=>{ecuMode="spark";$("ecuSparkBtn").classList.add("primary");$("ecuFuelBtn").classList.remove("primary");drawEcu();};
  $("repairBtn").onclick=()=>{state.damage=0;state.knock=0;state.coolant=88;buildDiagnostic();};
 }
 function loop(){let last=performance.now();function frame(now){const dt=Math.min(.04,(now-last)/1000);last=now;tickPhysics(dt);requestAnimationFrame(frame);}requestAnimationFrame(frame);}
