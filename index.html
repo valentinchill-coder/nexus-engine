@@ -1,58 +1,137 @@
 <!doctype html>
-<html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#090d14"><title>NEXUS ENGINE</title>
+<html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#080d15"><title>NEXUS ENGINE — 3D Engine Lab</title>
 <style>
-:root{color-scheme:dark;--bg:#090d14;--panel:#111a26;--line:#26384b;--cyan:#37d7ee;--orange:#ff9d43;--muted:#8da1b5}*{box-sizing:border-box}body{margin:0;background:radial-gradient(ellipse at top,#17283a 0,#090d14 55%);color:#e9f4ff;font:15px -apple-system,BlinkMacSystemFont,Segoe UI,sans-serif;padding:16px;max-width:900px;margin:auto}header{display:flex;justify-content:space-between;align-items:center;margin:8px 0 18px}h1{font-size:24px;letter-spacing:3px;margin:0}small,.muted{color:var(--muted)}.tag{color:var(--cyan);font-size:11px;letter-spacing:2px}.panel{background:linear-gradient(145deg,#142131,#0e1621);border:1px solid var(--line);border-radius:16px;padding:16px;margin:12px 0;box-shadow:0 12px 30px #0005}.engine{height:180px;display:flex;align-items:center;justify-content:center;gap:8px;perspective:500px}.cyl{width:36px;height:110px;border:2px solid #53758e;border-radius:9px;background:linear-gradient(90deg,#152a3b,#30485b,#142435);position:relative;overflow:hidden}.piston{height:35px;background:linear-gradient(#b8d9e8,#567c91);border:2px solid #9dd6e7;border-radius:5px;position:absolute;left:3px;right:3px;top:10px}.running .piston{animation:move .42s ease-in-out infinite alternate}.cyl:nth-child(2n) .piston{animation-delay:-.21s}@keyframes move{to{transform:translateY(58px)}}.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.stat{background:#0a111b;border:1px solid #23384b;border-radius:10px;padding:10px}.stat b{display:block;font-size:20px;color:var(--cyan);font-variant-numeric:tabular-nums}.stat span{font-size:11px;color:var(--muted)}.controls{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}button,select{background:#17283a;color:#e9f4ff;border:1px solid #36536c;border-radius:10px;padding:12px;font:inherit}button.primary{background:linear-gradient(100deg,#087d98,#17617d);border-color:#39cde3}button.warn{border-color:#9a5930;color:#ffb36f}label{display:block;color:var(--muted);font-size:12px;margin:12px 0 6px}input[type=range]{width:100%;accent-color:var(--cyan)}select{width:100%}.row{display:grid;grid-template-columns:1fr 1fr;gap:12px}.gear{display:flex;gap:7px;flex-wrap:wrap;margin-top:10px}.gear button{min-width:42px;padding:9px}.gear button.active{background:#087d98;border-color:var(--cyan)}.warning{color:#ffad65;min-height:20px;font-size:13px}.footer{text-align:center;color:#667d91;font-size:11px;padding:20px}@media(max-width:420px){body{padding:12px}.stats{grid-template-columns:repeat(2,1fr)}h1{font-size:21px}}
+:root{color-scheme:dark;--bg:#080d15;--panel:#111b28;--line:#263b50;--cyan:#3bd9ee;--muted:#91a5b8;--orange:#ffab61}*{box-sizing:border-box}body{margin:0;padding:14px;max-width:1000px;margin-inline:auto;background:radial-gradient(ellipse at 50% -10%,#20374c,#080d15 62%);color:#eaf5ff;font:14px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}header{display:flex;justify-content:space-between;align-items:center;padding:8px 2px 14px}.eyebrow{font-size:10px;letter-spacing:2.5px;color:var(--cyan)}h1{font-size:23px;letter-spacing:3px;margin:3px 0}small,.muted{color:var(--muted)}.panel{background:linear-gradient(145deg,#142131,#0e1722);border:1px solid var(--line);border-radius:16px;padding:14px;margin:11px 0;box-shadow:0 12px 28px #0004}.row{display:grid;grid-template-columns:1fr 1fr;gap:10px}.label{display:block;color:var(--muted);font-size:10px;letter-spacing:1px;margin:8px 0 6px}select,button{width:100%;border:1px solid #36536c;border-radius:10px;background:#17283a;color:#edf7ff;padding:11px;font:inherit}button:active{transform:scale(.985)}button.primary{background:linear-gradient(100deg,#087d98,#17617d);border-color:#3bd9ee}button.active{background:#087d98;border-color:var(--cyan)}button.warn{color:#ffb57a;border-color:#895631}.view{height:320px;position:relative;overflow:hidden;border-radius:13px;background:radial-gradient(ellipse at 50% 45%,#203548,#080e17 72%);border:1px solid #294055;margin-top:12px;touch-action:none}.view canvas{width:100%;height:100%;display:block}.viewhint{position:absolute;left:10px;bottom:8px;color:#8ca7bb;font-size:10px;pointer-events:none}.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-top:12px}.stat{background:#09121d;border:1px solid #24394c;border-radius:10px;padding:9px}.stat b{display:block;font-size:20px;color:var(--cyan);font-variant-numeric:tabular-nums}.stat span{font-size:9px;color:var(--muted);letter-spacing:.6px}.geargrid{display:grid;grid-template-columns:repeat(6,1fr);gap:6px;margin:10px 0}.geargrid button{padding:9px 3px}.range{width:100%;accent-color:var(--cyan)}.rangeval{float:right;color:#dcecf8;font-size:11px}.pedal{height:8px;background:#08111a;border-radius:10px;overflow:hidden;margin-top:7px}.pedal>i{display:block;height:100%;width:0;background:linear-gradient(90deg,#159db7,#ffb15d)}.warning{color:var(--orange);min-height:18px;font-size:12px;margin-top:7px}.footer{text-align:center;color:#647c91;font-size:10px;padding:15px}.mode{font-size:10px;color:var(--cyan);letter-spacing:1px}.two{display:grid;grid-template-columns:1fr 1fr;gap:8px}.sectiontitle{font-size:12px;letter-spacing:1.3px;font-weight:700}.spec{color:var(--muted);font-size:11px;margin-top:5px}@media(max-width:480px){body{padding:10px}.view{height:275px}.stats{grid-template-columns:repeat(2,1fr)}h1{font-size:20px}.stat b{font-size:18px}}
 </style></head><body>
-<header><div><div class="tag">MOBILE ENGINE LAB</div><h1>NEXUS ENGINE</h1><small>Симулятор двигателя и трансмиссии</small></div><div class="tag">v1.0</div></header>
-<section class="panel"><div class="row"><div><label>КОНФИГУРАЦИЯ ДВИГАТЕЛЯ</label><select id="engine"><option value="8">V8</option><option value="6">V6</option><option value="12">V12</option><option value="4">Рядный-4</option><option value="4">Оппозитный-4</option></select></div><div><label>ТРАНСМИССИЯ</label><select id="gearbox"><option value="6">МКПП 6 ступеней</option><option value="5">МКПП 5 ступеней</option><option value="8">АКПП 8 ступеней</option><option value="6">АКПП 6 ступеней</option><option value="7">DCT 7 ступеней</option><option value="6">Секвентальная 6</option><option value="8">CVT (виртуально 8)</option></select></div></div>
-<div class="engine" id="engineView"><div class="cyl"><div class="piston"></div></div><div class="cyl"><div class="piston"></div></div><div class="cyl"><div class="piston"></div></div><div class="cyl"><div class="piston"></div></div><div class="cyl"><div class="piston"></div></div><div class="cyl"><div class="piston"></div></div><div class="cyl"><div class="piston"></div></div><div class="cyl"><div class="piston"></div></div></div>
-<div class="stats"><div class="stat"><b id="rpm">0</b><span>ОБОРОТЫ / RPM</span></div><div class="stat"><b id="temp">22°</b><span>ТЕМПЕРАТУРА</span></div><div class="stat"><b id="boost">0.0</b><span>НАДДУВ / BAR</span></div><div class="stat"><b id="power">0</b><span>МОЩНОСТЬ / HP</span></div><div class="stat"><b id="torque">0</b><span>МОМЕНТ / NM</span></div><div class="stat"><b id="speed">0</b><span>СКОРОСТЬ / KM/H</span></div></div><div class="warning" id="warning"></div></section>
-<section class="panel"><div class="controls"><button class="primary" id="start">▶ Запустить двигатель</button><button class="warn" id="stop">■ Заглушить</button></div><label>ПЕДАЛЬ ГАЗА: <b id="throttleVal">0%</b></label><input id="throttle" type="range" min="0" max="100" value="0"><div class="row"><div><label>ТУРБО</label><input id="turbo" type="range" min="0" max="20" value="8"></div><div><label>ОГРАНИЧИТЕЛЬ RPM</label><input id="limit" type="range" min="4000" max="9000" step="250" value="7000"></div></div><div class="row"><div><label>ТОПЛИВНАЯ СМЕСЬ</label><input id="mixture" type="range" min="8" max="18" value="14"></div><div><label>ОПЕРЕЖЕНИЕ ЗАЖИГАНИЯ</label><input id="ignition" type="range" min="0" max="40" value="20"></div></div></section>
-<section class="panel"><b>УПРАВЛЕНИЕ ТРАНСМИССИЕЙ</b><div class="muted" style="font-size:12px;margin-top:5px">Выбери передачу вручную или используй автоматический режим.</div><div class="gear" id="gears"></div><div class="controls" style="margin-top:12px"><button id="down">− Понизить</button><button id="up">+ Повысить</button></div><label>ГЛАВНАЯ ПАРА: <b id="finalVal">3.50</b></label><input id="final" type="range" min="2.5" max="5" step=".05" value="3.5"></section>
-<section class="panel"><div class="controls"><button id="repair">🛠 Ремонт двигателя</button><button id="reset">↺ Сброс настроек</button><button id="sound">🔊 Звук: включён</button><button id="save">Сохранить конфигурацию</button></div></section>
-<div class="footer">NEXUS ENGINE • Демонстрационная физическая модель • Звук запускается после нажатия кнопки</div>
-<script>
-(()=> {
- const $=id=>document.getElementById(id);let running=false,rpm=0,temp=22,gear=1,gears=6,throttle=0,soundOn=true,audio=null,last=0;
- const ratios=[3.2,2.1,1.5,1.18,.92,.76,.64,.55],clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
- let bus,master,rumbleGain,fireGain,intakeGain,turboGain,noiseSource,noiseFilter,noiseGain,mod,modGain,nodes=[];
- function set(p,v,t=.08){if(p&&audio)p.setTargetAtTime(v,audio.currentTime,t)}
- function ensureAudio(){
-  if(audio)return;const AC=window.AudioContext||window.webkitAudioContext;if(!AC)return;audio=new AC();
-  master=audio.createGain();master.gain.value=.72;master.connect(audio.destination);bus=audio.createGain();bus.gain.value=0;bus.connect(master);
-  rumbleGain=audio.createGain();rumbleGain.connect(bus);fireGain=audio.createGain();fireGain.connect(bus);intakeGain=audio.createGain();intakeGain.connect(bus);turboGain=audio.createGain();turboGain.connect(bus);
-  const low=audio.createBiquadFilter();low.type='lowpass';low.frequency.value=180;const rumble=audio.createOscillator();rumble.type='triangle';rumble.connect(low);low.connect(rumbleGain);rumble.start();nodes.push(rumble);
-  const fire=audio.createOscillator();fire.type='sawtooth';const ff=audio.createBiquadFilter();ff.type='lowpass';ff.frequency.value=850;fire.connect(ff);ff.connect(fireGain);fire.start();nodes.push(fire);
-  const harmonic=audio.createOscillator();harmonic.type='square';const hg=audio.createGain();hg.gain.value=.035;harmonic.connect(hg);hg.connect(bus);harmonic.start();nodes.push(harmonic);
-  const intake=audio.createOscillator();intake.type='sawtooth';const inf=audio.createBiquadFilter();inf.type='bandpass';inf.frequency.value=520;inf.Q.value=.7;intake.connect(inf);inf.connect(intakeGain);intake.start();nodes.push(intake);
-  const turbo=audio.createOscillator();turbo.type='sine';const tf=audio.createBiquadFilter();tf.type='highpass';tf.frequency.value=700;turbo.connect(tf);tf.connect(turboGain);turbo.start();nodes.push(turbo);
-  const buffer=audio.createBuffer(1,audio.sampleRate*2,audio.sampleRate),d=buffer.getChannelData(0);for(let i=0;i<d.length;i++)d[i]=(Math.random()*2-1)*.65;
-  noiseSource=audio.createBufferSource();noiseSource.buffer=buffer;noiseSource.loop=true;noiseFilter=audio.createBiquadFilter();noiseFilter.type='bandpass';noiseFilter.frequency.value=1100;noiseFilter.Q.value=.55;noiseGain=audio.createGain();noiseGain.gain.value=0;noiseSource.connect(noiseFilter);noiseFilter.connect(noiseGain);noiseGain.connect(bus);noiseSource.start();
-  mod=audio.createOscillator();mod.type='sine';modGain=audio.createGain();modGain.gain.value=0;mod.connect(modGain);modGain.connect(fireGain.gain);mod.start();
- }
- function startSound(){if(!soundOn)return;ensureAudio();if(!audio)return;audio.resume();set(bus.gain,.8,.25);
-  const t=audio.currentTime,o=audio.createOscillator(),g=audio.createGain();o.type='sawtooth';o.frequency.setValueAtTime(48,t);o.frequency.exponentialRampToValueAtTime(95,t+.55);g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(.12,t+.04);g.gain.exponentialRampToValueAtTime(.0001,t+.72);o.connect(g);g.connect(master);o.start(t);o.stop(t+.75)}
- function stopSound(){if(audio)set(bus.gain,0,.18)}
- function shiftSound(){if(!audio||!soundOn||!running)return;const t=audio.currentTime,o=audio.createOscillator(),g=audio.createGain(),f=audio.createBiquadFilter();o.type='sawtooth';o.frequency.setValueAtTime(110,t);o.frequency.exponentialRampToValueAtTime(38,t+.16);f.type='lowpass';f.frequency.value=650;g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(.16,t+.012);g.gain.exponentialRampToValueAtTime(.0001,t+.2);o.connect(f);f.connect(g);g.connect(master);o.start(t);o.stop(t+.22)}
- function renderGears(){gears=+$('gearbox').value;gear=Math.min(gear,gears);$('gears').innerHTML='';for(let i=1;i<=gears;i++){let b=document.createElement('button');b.textContent=i;b.className=i===gear?'active':'';b.onclick=()=>{if(i!==gear)shiftSound();gear=i;renderGears()};$('gears').append(b)}}
- function updateAudio(){if(!audio||!soundOn)return;const cyl=+$('engine').value,rev=Math.max(0,rpm),load=running?throttle/100:0,crank=Math.max(18,rev/60),fire=Math.max(12,rev*cyl/120);
-  set(nodes[0].frequency,crank*.5,.05);set(nodes[1].frequency,fire,.035);set(nodes[2].frequency,fire*2,.04);set(nodes[3].frequency,crank*1.35,.05);
-  set(noiseFilter.frequency,650+load*2100+rev*.12,.08);set(noiseGain.gain,running?(.012+load*.11+rev/90000):0,.08);
-  set(rumbleGain.gain,running?(.10+load*.11):0,.08);set(fireGain.gain,running?(.055+load*.27):0,.06);set(intakeGain.gain,running?(.012+load*.15):0,.08);
-  const boost=running?Math.max(0,(+$('turbo').value/10)*(rev/7000)*(.3+load)):0;set(nodes[4].frequency,700+boost*1500+rev*.22,.12);set(turboGain.gain,running?clamp(boost*.035,0,.12):0,.12);set(mod.frequency,Math.max(3,fire),.05);set(modGain.gain,running?.025+load*.045:0,.06)}
- function update(){const boost=running?Math.max(0,(+$('turbo').value/10)*(rpm/7000)*(.3+throttle/150)):0,hp=running?Math.round((rpm/7000)*210*(1+boost*.22)*(+$('mixture').value/14)*(1-Math.abs(+$('ignition').value-22)/150)):0,tq=running?Math.round(hp*7127/Math.max(rpm,800)):0,speed=running?Math.round(rpm/ratios[gear-1]/(+$('final').value)*.72):0;
-  $('rpm').textContent=Math.round(rpm).toLocaleString('ru');$('temp').textContent=Math.round(temp)+'°';$('boost').textContent=boost.toFixed(1);$('power').textContent=hp;$('torque').textContent=tq;$('speed').textContent=speed;$('warning').textContent=temp>110?'⚠ ПЕРЕГРЕВ! Снизь обороты или заглуши двигатель.':rpm>=+$('limit').value-100?'ОГРАНИЧИТЕЛЬ ОБОРОТОВ АКТИВЕН':'';updateAudio()}
- function tick(t){let dt=Math.min(.05,(t-last)/1000||.016);last=t;let target=running?850+throttle*55:0;if(running&&rpm>+$('limit').value)target=+$('limit').value;if(running&&temp>125)target=0;rpm+=(target-rpm)*Math.min(1,dt*(running?2.2:4));temp+=(running?(20+throttle*.045-temp)*dt*.07:(22-temp)*dt*.035);update();requestAnimationFrame(tick)}
- $('start').onclick=()=>{running=true;startSound();$('engineView').classList.add('running')};
- $('stop').onclick=()=>{running=false;$('throttle').value=0;throttle=0;$('throttleVal').textContent='0%';$('engineView').classList.remove('running');stopSound()};
- $('throttle').oninput=e=>{throttle=+e.target.value;$('throttleVal').textContent=throttle+'%'};
- $('gearbox').onchange=renderGears;$('up').onclick=()=>{if(gear<gears){gear++;shiftSound();renderGears()}};$('down').onclick=()=>{if(gear>1){gear--;shiftSound();renderGears()}};
- $('final').oninput=e=>$('finalVal').textContent=(+e.target.value).toFixed(2);
- $('repair').onclick=()=>{temp=22;rpm=0;running=false;$('throttle').value=0;throttle=0;$('throttleVal').textContent='0%';$('engineView').classList.remove('running');stopSound();update()};
- $('reset').onclick=()=>{['turbo','mixture','ignition','limit','final','throttle'].forEach(id=>$(id).value=$(id).defaultValue);throttle=0;gear=1;$('throttleVal').textContent='0%';$('finalVal').textContent='3.50';renderGears();$('repair').click()};
- $('sound').onclick=()=>{soundOn=!soundOn;$('sound').textContent=soundOn?'🔊 Звук: включён':'🔇 Звук: выключен';if(!soundOn)stopSound();else if(running)startSound()};
- $('save').onclick=()=>{const data={engine:$('engine').value,gearbox:$('gearbox').value,turbo:$('turbo').value,mixture:$('mixture').value,ignition:$('ignition').value,limit:$('limit').value,final:$('final').value};try{localStorage.setItem('nexus-engine-setup',JSON.stringify(data));$('save').textContent='✓ Конфигурация сохранена'}catch(e){$('save').textContent='Не удалось сохранить'}};
- $('engine').onchange=e=>{const n=+e.target.value,view=$('engineView');view.innerHTML='';for(let i=0;i<n;i++){const c=document.createElement('div');c.className='cyl';c.innerHTML='<div class="piston"></div>';view.append(c)}if(running)view.classList.add('running')};
- renderGears();requestAnimationFrame(tick);
+<header><div><div class="eyebrow">MOBILE ENGINE LAB / REALTIME PHYSICS</div><h1>NEXUS ENGINE</h1><small>3D-конструктор и симулятор силового агрегата</small></div><div class="mode">3D • PHYSICS</div></header>
+<section class="panel">
+ <div class="row"><div><label class="label">АРХИТЕКТУРА ДВИГАТЕЛЯ</label><select id="engine"><option value="v8">V8 · 90°</option><option value="v6">V6 · 60°</option><option value="v12">V12 · 60°</option><option value="i4">Рядный-4</option><option value="boxer">Оппозитный-4</option></select></div><div><label class="label">КОРОБКА ПЕРЕДАЧ</label><select id="gearbox"><option value="mt6">МКПП · 6</option><option value="mt5">МКПП · 5</option><option value="at8">АКПП · 8</option><option value="at6">АКПП · 6</option><option value="dct7">DCT · 7</option><option value="seq6">Секвентальная · 6</option><option value="cvt">CVT · вариатор</option></select></div></div>
+ <div class="view" id="view"><div class="viewhint">Проводи пальцем, чтобы вращать модель • Сведи/разведи пальцы для масштаба</div></div>
+ <div class="stats"><div class="stat"><b id="rpm">0</b><span>ОБОРОТЫ · RPM</span></div><div class="stat"><b id="speed">0</b><span>СКОРОСТЬ · KM/H</span></div><div class="stat"><b id="temp">22°</b><span>ТЕМПЕРАТУРА</span></div><div class="stat"><b id="power">0</b><span>МОЩНОСТЬ · HP</span></div><div class="stat"><b id="torque">0</b><span>МОМЕНТ · NM</span></div><div class="stat"><b id="boost">0.0</b><span>НАДДУВ · BAR</span></div></div>
+ <div class="warning" id="warning">3D-модель готова к запуску</div>
+</section>
+<section class="panel">
+ <div class="two"><button class="primary" id="start">▶ Запустить</button><button class="warn" id="stop">■ Заглушить</button></div>
+ <label class="label">ПЕДАЛЬ ГАЗА <span class="rangeval" id="throttleVal">0%</span></label><input class="range" id="throttle" type="range" min="0" max="100" value="0"><div class="pedal"><i id="pedalbar"></i></div>
+ <div class="row"><div><label class="label">ТУРБОНАДДУВ <span class="rangeval" id="turboVal">0.8 bar</span></label><input class="range" id="turbo" type="range" min="0" max="20" value="8"></div><div><label class="label">ОГРАНИЧИТЕЛЬ <span class="rangeval" id="limitVal">7000</span></label><input class="range" id="limit" type="range" min="4000" max="9000" step="250" value="7000"></div></div>
+ <div class="row"><div><label class="label">СМЕСЬ <span class="rangeval" id="mixVal">14.0:1</span></label><input class="range" id="mixture" type="range" min="10" max="18" step=".1" value="14"></div><div><label class="label">ЗАЖИГАНИЕ <span class="rangeval" id="ignVal">20°</span></label><input class="range" id="ignition" type="range" min="0" max="40" value="20"></div></div>
+</section>
+<section class="panel"><div class="sectiontitle">ТРАНСМИССИЯ И СЦЕПЛЕНИЕ</div><div class="spec" id="gearinfo">МКПП · 6 ступеней · механическое переключение</div><div class="geargrid" id="gears"></div><div class="two"><button id="down">− Понизить</button><button id="up">+ Повысить</button></div>
+ <label class="label">СЦЕПЛЕНИЕ <span class="rangeval" id="clutchVal">100%</span></label><input class="range" id="clutch" type="range" min="0" max="100" value="100">
+ <div class="row"><div><label class="label">ГЛАВНАЯ ПАРА <span class="rangeval" id="finalVal">3.50</span></label><input class="range" id="final" type="range" min="2.5" max="5" step=".05" value="3.5"></div><div><label class="label">МАССА АВТОМОБИЛЯ</label><select id="mass"><option value="1350">1350 кг · лёгкий</option><option value="1650" selected>1650 кг · средний</option><option value="2100">2100 кг · тяжёлый</option></select></div></div>
+ <div class="warning" id="shiftmsg"></div>
+</section>
+<section class="panel"><div class="two"><button id="sound">🔊 Звук: включён</button><button id="repair">🛠 Охладить и восстановить</button><button id="reset">↺ Сброс симуляции</button><button id="save">Сохранить сетап</button></div></section>
+<div class="footer">NEXUS ENGINE · 3D-модель в реальном времени · Физическая модель симуляционная, не инженерный CAD</div>
+<script type="module">
+import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
+(()=>{
+const $=id=>document.getElementById(id),view=$('view');let renderer,scene,camera,engineRoot,parts=[],crankGroup,crankWebs=[],rpm=0,temp=22,speed=0,vehicleSpeed=0,gear=1,throttle=0,running=false,soundOn=true,last=0,shiftTimer=0,shiftMsg='',audio=null,engineOsc=[],engineGain=null;
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v)),lerp=(a,b,t)=>a+(b-a)*t;
+const configs={v8:{count:8,banks:2,angle:45,red:7000,base:5.0,torque:480,disp:5.0},v6:{count:6,banks:2,angle:30,red:7200,base:3.5,torque:360,disp:3.5},v12:{count:12,banks:2,angle:30,red:7800,base:6.0,torque:580,disp:6.0},i4:{count:4,banks:1,angle:0,red:6800,base:2.0,torque:210,disp:2.0},boxer:{count:4,banks:2,angle:90,red:7200,base:2.5,torque:250,disp:2.5}};
+const boxes={mt6:{name:'МКПП',ratios:[3.55,2.10,1.45,1.10,.86,.70],final:3.5,shift:.34,auto:false},mt5:{name:'МКПП',ratios:[3.60,2.05,1.36,1,.78],final:3.7,shift:.4,auto:false},at8:{name:'АКПП',ratios:[4.71,3.14,2.10,1.67,1.29,1,.84,.67],final:3.2,shift:.48,auto:true},at6:{name:'АКПП',ratios:[3.95,2.68,1.80,1.34,1,.78],final:3.4,shift:.5,auto:true},dct7:{name:'DCT',ratios:[3.30,2.19,1.63,1.29,1.03,.84,.68],final:3.6,shift:.13,auto:true},seq6:{name:'Секвентальная',ratios:[2.90,2.05,1.55,1.25,1.02,.86],final:3.8,shift:.16,auto:false},cvt:{name:'CVT',ratios:[2.8,2.45,2.1,1.8,1.5,1.25,1.05,.88],final:3.3,shift:.12,auto:true}};
+let box=boxes.mt6,conf=configs.v8,clutch=1,engineLoad=0,boost=0,crankAngle=0;
+function mat(color,metal=0.5,rough=.35){return new THREE.MeshStandardMaterial({color,metalness:metal,roughness:rough})}
+const aluminum=mat(0x8498a5,.8,.28),dark=mat(0x263846,.75,.35),steel=mat(0x9baeba,.9,.2),copper=mat(0xb66b39,.7,.28),black=mat(0x101923,.35,.5),glow=mat(0x26b9d2,.5,.25);
+function mesh(geo,m,parent,x=0,y=0,z=0){const o=new THREE.Mesh(geo,m);o.position.set(x,y,z);o.castShadow=true;o.receiveShadow=true;parent.add(o);return o}
+function cylinderBetween(obj,a,b,r1,r2){const d=new THREE.Vector3().subVectors(b,a),len=d.length();obj.position.copy(a).add(b).multiplyScalar(.5);obj.scale.set(1,len,1);obj.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0),d.normalize())}
+function disposeModel(){if(!engineRoot)return;scene.remove(engineRoot);engineRoot.traverse(o=>{if(o.geometry)o.geometry.dispose()});parts=[]}
+function buildEngine(){
+ disposeModel();engineRoot=new THREE.Group();scene.add(engineRoot);conf=configs[$('engine').value];parts=[];crankWebs=[];
+ const block=mesh(new THREE.BoxGeometry(conf.banks===1?1.8:2.15,.95,1.25),dark,engineRoot,0,-.55,0);block.material=dark;
+ // sump and lower crankcase
+ mesh(new THREE.BoxGeometry(1.8,.35,1.05),black,engineRoot,0,-1.12,0);
+ crankGroup=new THREE.Group();engineRoot.add(crankGroup);
+ const shaft=mesh(new THREE.CylinderGeometry(.105,.105,conf.count*.37+1,24),steel,crankGroup,0,0,0);shaft.rotation.z=Math.PI/2;
+ for(let i=0;i<conf.count;i++){const x=(i-(conf.count-1)/2)*.36;const web=mesh(new THREE.CylinderGeometry(.24,.24,.10,24),steel,crankGroup,x,-.12,0);web.rotation.z=Math.PI/2;crankWebs.push(web)}
+ const banks=conf.banks===1?[0]:$('engine').value==='boxer'?[Math.PI/2,-Math.PI/2]:[conf.angle*Math.PI/180,-conf.angle*Math.PI/180];
+ const per=conf.count/conf.banks;
+ banks.forEach((ang,bi)=>{const bank=new THREE.Group();bank.rotation.z=ang;engineRoot.add(bank);
+  for(let j=0;j<per;j++){const x=(j-(per-1)/2)*.36;
+   const sleeve=mesh(new THREE.CylinderGeometry(.34,.34,1.45,32,1,true),aluminum,bank,x,.45,0);sleeve.material.side=THREE.DoubleSide;
+   mesh(new THREE.CylinderGeometry(.37,.37,.12,32),dark,bank,x,1.18,0);
+   const pistonGroup=new THREE.Group();bank.add(pistonGroup);
+   mesh(new THREE.CylinderGeometry(.285,.30,.25,32),steel,pistonGroup,0,0,0);
+   mesh(new THREE.CylinderGeometry(.08,.08,.07,16),copper,pistonGroup,0,0,.02);
+   const rod=mesh(new THREE.CylinderGeometry(.055,.085,1,12),copper,bank,x,-.2,0);
+   const crankPin=new THREE.Vector3(x,-1.0,0),pistonPin=new THREE.Vector3(x,0,0);
+   const valveGroup=new THREE.Group();bank.add(valveGroup);
+   for(let v=-1;v<=1;v+=2){mesh(new THREE.CylinderGeometry(.055,.055,.23,16),steel,valveGroup,x+v*.14,1.3,.04);mesh(new THREE.CylinderGeometry(.09,.09,.045,16),copper,valveGroup,x+v*.14,1.43,.04)}
+   parts.push({bank,pistonGroup,rod,crankPin,pistonPin,phase:(iPhase(bi,j,per,conf.count)),bankAngle:ang,valveGroup});
+  }
+ });
+ // camshafts and front accessories
+ for(let z of [-.42,.42]){const cam=mesh(new THREE.CylinderGeometry(.07,.07,conf.count*.38+.4,20),steel,engineRoot,0,1.48,z);cam.rotation.z=Math.PI/2;for(let i=0;i<conf.count;i++)mesh(new THREE.SphereGeometry(.075,12,10),copper,engineRoot,(i-(conf.count-1)/2)*.36,1.48,z)}
+ mesh(new THREE.CylinderGeometry(.34,.34,.18,32),dark,engineRoot,1.28,-.45,0).rotation.z=Math.PI/2;
+ mesh(new THREE.TorusGeometry(.26,.035,12,40),copper,engineRoot,1.4,-.45,0).rotation.y=Math.PI/2;
+ mesh(new THREE.BoxGeometry(.55,.38,.45),glow,engineRoot,-1.3,.9,0);
+ engineRoot.rotation.y=-.45;engineRoot.rotation.x=.08;
+}
+function iPhase(b,j,per,count){return (j*2*Math.PI/per)+(b*Math.PI)}
+function init3D(){
+ scene=new THREE.Scene();scene.background=new THREE.Color(0x080e17);scene.fog=new THREE.Fog(0x080e17,7,16);
+ camera=new THREE.PerspectiveCamera(38,1,.1,100);camera.position.set(4.2,3.0,5.4);camera.lookAt(0,.05,0);
+ renderer=new THREE.WebGLRenderer({antialias:true,alpha:false});renderer.setPixelRatio(Math.min(devicePixelRatio,2));renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;renderer.outputColorSpace=THREE.SRGBColorSpace;view.appendChild(renderer.domElement);
+ scene.add(new THREE.HemisphereLight(0xa9dfff,0x18202b,2.0));const key=new THREE.DirectionalLight(0xffffff,3.2);key.position.set(3,6,4);key.castShadow=true;scene.add(key);const rim=new THREE.PointLight(0x27cde5,28,9);rim.position.set(-3,1,2);scene.add(rim);
+ const floor=mesh(new THREE.PlaneGeometry(30,30),mat(0x101b27,.25,.65),scene,0,-1.55,0);floor.rotation.x=-Math.PI/2;floor.receiveShadow=true;
+ buildEngine();resize();let drag=false,px=0,py=0,pinch=0;renderer.domElement.addEventListener('pointerdown',e=>{drag=true;px=e.clientX;py=e.clientY;renderer.domElement.setPointerCapture(e.pointerId)});renderer.domElement.addEventListener('pointerup',()=>drag=false);renderer.domElement.addEventListener('pointermove',e=>{if(!drag)return;const dx=e.clientX-px,dy=e.clientY-py;engineRoot.rotation.y+=dx*.009;engineRoot.rotation.x=clamp(engineRoot.rotation.x+dy*.006,-.7,.7);px=e.clientX;py=e.clientY});renderer.domElement.addEventListener('wheel',e=>{camera.position.multiplyScalar(e.deltaY>0?1.08:.92);camera.position.clampLength(3,11)},{passive:true});
+ if(window.ResizeObserver)new ResizeObserver(resize).observe(view);else window.addEventListener('resize',resize);
+}
+function resize(){if(!renderer)return;const w=view.clientWidth,h=view.clientHeight;renderer.setSize(w,h,false);camera.aspect=w/h;camera.updateProjectionMatrix()}
+function animate3D(dt){if(!renderer)return;const rev=Math.max(0,rpm);crankAngle+=rev/60*Math.PI*2*dt;crankGroup.rotation.x=crankAngle;
+ parts.forEach(p=>{const theta=crankAngle+p.phase,stroke=.52,rodL=.88,offset=stroke*.5*Math.cos(theta),z=stroke*.5*Math.sin(theta);const pin=new THREE.Vector3(p.crankPin.x,-1.0+offset,z*.45);const top=new THREE.Vector3(p.pistonPin.x,.16+offset,0);p.pistonGroup.position.copy(top);cylinderBetween(p.rod,top,pin);p.valveGroup.rotation.x=Math.sin(theta*2)*.08});
+ engineRoot.rotation.y+=dt*.025;renderer.render(scene,camera)}
+function getTorque(r){const x=r/conf.red;const curve=clamp(1.08-.48*Math.pow((x-.58)/.58,2),.38,1.08);return conf.torque*curve}
+function ratios(){if($('gearbox').value==='cvt'){const target=clamp(2.8-speed/90*.026,.88,2.8);return target}return box.ratios[gear-1]||box.ratios[0]}
+function gearCount(){return box.ratios.length}
+function setGear(n,manual=true){n=clamp(n,1,gearCount());if(n===gear)return;gear=n;shiftTimer=box.shift;shiftMsg='Переключение передачи · размыкание сцепления';$('shiftmsg').textContent=shiftMsg;renderGears()}
+function renderGears(){const wrap=$('gears');wrap.innerHTML='';for(let i=1;i<=gearCount();i++){const b=document.createElement('button');b.textContent=i;b.className=i===gear?'active':'';b.onclick=()=>{if(!box.auto)setGear(i);else $('shiftmsg').textContent='В автоматическом режиме передачами управляет блок управления'};wrap.append(b)}}
+function loadBox(){box=boxes[$('gearbox').value];gear=1;renderGears();$('gearinfo').textContent=box.name+' · '+gearCount()+' ступеней · '+(box.auto?'электронное/автоматическое управление':'ручное переключение')}
+function initAudio(){if(audio)return;const AC=window.AudioContext||window.webkitAudioContext;if(!AC)return;audio=new AC();engineGain=audio.createGain();engineGain.gain.value=0;engineGain.connect(audio.destination);
+ for(let i=0;i<3;i++){const o=audio.createOscillator(),g=audio.createGain(),f=audio.createBiquadFilter();o.type=['sawtooth','triangle','square'][i];f.type='lowpass';f.frequency.value=[500,180,1200][i];g.gain.value=[.18,.3,.025][i];o.connect(f);f.connect(g);g.connect(engineGain);o.start();engineOsc.push({o,g,f})}}
+function updateAudio(){if(!soundOn||!audio)return;const freq=Math.max(25,rpm/60*conf.count/2);engineOsc.forEach((n,i)=>{n.o.frequency.setTargetAtTime(freq*(i===0?1:i===1?.5:2),audio.currentTime,.04);n.f.frequency.setTargetAtTime(250+throttle*17+rpm*.12,audio.currentTime,.08)});engineGain.gain.setTargetAtTime(running?.07+throttle*.0015:0,audio.currentTime,.08)}
+function updateUI(){const tq=running?Math.round(getTorque(rpm)*(1-Math.max(0,engineLoad)*.3)):0,hp=Math.round(tq*rpm/7127);$('rpm').textContent=Math.round(rpm).toLocaleString('ru');$('speed').textContent=Math.round(speed);$('temp').textContent=Math.round(temp)+'°';$('power').textContent=hp;$('torque').textContent=tq;$('boost').textContent=boost.toFixed(1);$('throttleVal').textContent=throttle+'%';$('pedalbar').style.width=throttle+'%';$('turboVal').textContent=(+$('turbo').value/10).toFixed(1)+' bar';$('limitVal').textContent=$('limit').value;$('mixVal').textContent=(+$('mixture').value).toFixed(1)+':1';$('ignVal').textContent=$('ignition').value+'°';$('clutchVal').textContent=Math.round(clutch*100)+'%';$('finalVal').textContent=(+$('final').value).toFixed(2);
+ $('warning').textContent=temp>112?'⚠ ПЕРЕГРЕВ: снизь нагрузку и останови двигатель':rpm>+$('limit').value-120?'ОГРАНИЧИТЕЛЬ ОБОРОТОВ':rpm<500&&running?'Низкие обороты · риск остановки двигателя':running?'Двигатель работает':'Двигатель остановлен';updateAudio()}
+function physics(dt){
+ const targetBoost=running?Math.min(+$('turbo').value/10,Math.max(0,(rpm/3500-0.5)*.55)*throttle/100):0;boost=lerp(boost,targetBoost,dt*1.6);
+ const ratio=ratios(),final=+$('final').value,clutchInput=+$('clutch').value/100,mass=+$('mass').value;
+ const wheelRPM=speed/(Math.PI*.315*60)*1000, coupledRPM=wheelRPM*ratio*final;
+ const idle=850,limit=+$('limit').value;
+ let targetRPM=idle;
+ if(running){const torque=getTorque(Math.max(rpm,idle))*(1+boost*.17),driveDemand=throttle/100;let loadRPM=idle+driveDemand*(limit-idle)*.74;
+  if(clutchInput>.02&&speed>1){const slip=clamp((coupledRPM-rpm)/1800,-.45,.45);loadRPM=lerp(loadRPM,Math.max(idle,coupledRPM),clutchInput*.72);engineLoad=clamp(driveDemand+slip*.5,0,1)}else engineLoad=driveDemand*.35;
+  targetRPM=lerp(idle,loadRPM,clamp(driveDemand+.12,0,1));if(shiftTimer>0)targetRPM=lerp(targetRPM,Math.max(idle,rpm*.74),.75);
+  if(rpm>limit)targetRPM=limit-350;if(temp>125)targetRPM=idle*.5;
+ }else{targetRPM=0;engineLoad=0}
+ const inertia=running?2.6:4.5;rpm=lerp(rpm,targetRPM,clamp(dt*inertia,0,1));
+ let engineTorque=running?getTorque(Math.max(rpm,idle))*(throttle/100)*(1+boost*.18):0;
+ const clutchTransfer=clutchInput*(shiftTimer>0?0:1);
+ const wheelTorque=engineTorque*ratio*final*clutchTransfer*.88;
+ const accel=wheelTorque/(mass*.315)-.012*speed-.00022*speed*speed;
+ vehicleSpeed=Math.max(0,vehicleSpeed+accel*dt*3.6);speed=vehicleSpeed;
+ if(box.auto&&running&&shiftTimer<=0){if(rpm>conf.red*.83&&gear<gearCount())setGear(gear+1,false);else if(rpm<conf.red*.34&&gear>1&&throttle>8)setGear(gear-1,false)}
+ if($('gearbox').value==='cvt'&&running){const ideal=clamp(2.8-throttle/100*1.65,.88,2.8);box={...box,ratios:Array(8).fill(ideal)}}
+ if(shiftTimer>0){shiftTimer-=dt;if(shiftTimer<=0)$('shiftmsg').textContent='Передача включена'}
+ const heat=running?(throttle*.002+rpm/limit*.018+boost*.012):0,cooling=(temp-22)*.0025;temp=clamp(temp+(heat-cooling)*dt*24,22,145);
+ if(!running)vehicleSpeed=Math.max(0,vehicleSpeed-dt*2);
+ if(temp>135){running=false;throttle=0;$('throttle').value=0}
+ updateUI();
+}
+function loop(t){const dt=Math.min(.04,(t-last)/1000||.016);last=t;physics(dt);animate3D(dt);requestAnimationFrame(loop)}
+$('engine').onchange=()=>{conf=configs[$('engine').value];rpm=0;buildEngine()};
+$('gearbox').onchange=()=>{loadBox()};
+$('start').onclick=()=>{running=true;initAudio();if(audio)audio.resume();if(rpm<200)rpm=500};
+$('stop').onclick=()=>{running=false;throttle=0;$('throttle').value=0};
+$('throttle').oninput=e=>{throttle=+e.target.value};
+$('up').onclick=()=>{if(!box.auto)setGear(gear+1);else $('shiftmsg').textContent='Выбери ручной режим коробки для управления передачами'};
+$('down').onclick=()=>{if(!box.auto)setGear(gear-1);else $('shiftmsg').textContent='Выбери ручной режим коробки для управления передачами'};
+$('clutch').oninput=e=>{clutch=+e.target.value/100};
+$('final').oninput=e=>{};
+$('turbo').oninput=()=>{};$('limit').oninput=()=>{};$('mixture').oninput=()=>{};$('ignition').oninput=()=>{};
+$('sound').onclick=()=>{soundOn=!soundOn;$('sound').textContent=soundOn?'🔊 Звук: включён':'🔇 Звук: выключен';if(soundOn&&running){initAudio();audio?.resume()}if(!soundOn&&engineGain)engineGain.gain.setTargetAtTime(0,audio.currentTime,.1)};
+$('repair').onclick=()=>{running=false;rpm=0;temp=22;speed=0;vehicleSpeed=0;throttle=0;$('throttle').value=0;$('shiftmsg').textContent='Система охлаждена, двигатель восстановлен'};
+$('reset').onclick=()=>{running=false;rpm=0;temp=22;speed=0;vehicleSpeed=0;throttle=0;gear=1;clutch=1;$('throttle').value=0;$('clutch').value=100;$('turbo').value=8;$('limit').value=7000;$('mixture').value=14;$('ignition').value=20;$('final').value=3.5;loadBox();$('shiftmsg').textContent='Симуляция сброшена'};
+$('save').onclick=()=>{const data={engine:$('engine').value,gearbox:$('gearbox').value,gear,final:$('final').value,mass:$('mass').value,turbo:$('turbo').value,limit:$('limit').value,mixture:$('mixture').value,ignition:$('ignition').value};localStorage.setItem('nexus-engine-setup',JSON.stringify(data));$('save').textContent='✓ Сетап сохранён'};
+try{init3D();loadBox();requestAnimationFrame(loop)}catch(e){$('warning').textContent='Не удалось запустить 3D: '+e.message}
 })();
 </script></body></html>
