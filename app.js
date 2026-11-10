@@ -174,7 +174,7 @@ function torqueModel(rpm,boost=state.boost){
 }
 function tickPhysics(dt){
  const disp=Math.PI/4*(cfg.bore/10)**2*(cfg.stroke/10)*cfg.cyl/1000;
- const target=state.running?cfg.redline*(.12+.88*state.throttle):0;
+ 
  const spoolTarget=state.running&&state.throttle>.05&&cfg.aspiration!=="na"&&cfg.turbo!=="roots"?clamp(state.throttle*(state.rpm/cfg.redline)*1.9,0,1):0;
  const inertia=cfg.turboSize===1?6:cfg.turboSize===2?2.6:1.2;
  state.spool+=(spoolTarget-state.spool)*Math.min(1,dt*(spoolTarget>state.spool?inertia:5));
@@ -189,7 +189,7 @@ function tickPhysics(dt){
  state.torque=state.running?baseTorque*(.2+.8*state.throttle)*pulseFactor*(1-state.damage*.5):0;
  const gearRatio=state.gear>0?(ratios[cfg.gearbox][state.gear-1]||1):0;
  const load=state.brake*.7+(gearRatio?Math.max(0,state.speed)*.018:0);
- const net=state.running?(state.torque*state.clutch*.035-load*18-(state.rpm*.002)): -state.rpm*2.2;
+ const idleAssist=state.running?clamp((850-state.rpm)*.012,-12,12):0;\n const net=state.running?(state.torque*state.clutch*.035-load*18-(state.rpm*.0025)+idleAssist): -state.rpm*2.2;
  state.rpm=clamp(state.rpm+net*dt,0,cfg.redline*1.05);
  if(state.running&&state.rpm<850&&state.throttle<.04)state.rpm=Math.max(0,state.rpm-dt*180);
  if(state.rpm>cfg.redline){state.limiter=true;state.rpm=cfg.redline-80;state.damage=clamp(state.damage+dt*.001,0,1);}else state.limiter=false;
@@ -199,9 +199,9 @@ function tickPhysics(dt){
  state.coolant+=(state.running?(88+state.throttle*28-state.coolant)*dt*.022:(22-state.coolant)*dt*.012);
  state.oil+=(state.running?(90+state.throttle*18-state.oil)*dt*.018:(22-state.oil)*dt*.01);
  state.iat+=(22+state.boost*28-state.iat)*dt*.4;
- state.egt+=(state.running?(280+state.throttle*620+state.boost*90-state.egt)*dt*.38:(180-state.egt)*dt*.18);
+ state.egt+=(state.running?(280+state.throttle*620+state.boost*90-state.egt)*dt*.38:(180-state.egt)*dt*.18);\n if(state.coolant>112)state.damage=clamp(state.damage+dt*.002,0,1);
  state.phase+=dt*state.rpm/60*Math.PI*2;
- if(state.auto&&state.running&&state.gearTimer<=0&&gearRatio){if(state.rpm>cfg.redline*.84&&state.gear<ratios[cfg.gearbox].length)shift(1);else if(state.rpm<1900&&state.gear>1)shift(-1);}
+ if(state.auto&&state.running&&state.gear===0&&state.gearTimer<=0)shift(1);\n if(state.auto&&state.running&&state.gearTimer<=0&&gearRatio){if(state.rpm>cfg.redline*.84&&state.gear<ratios[cfg.gearbox].length)shift(1);else if(state.rpm<1900&&state.gear>1)shift(-1);}
  state.gearTimer=Math.max(0,state.gearTimer-dt);
  if(state.dyno&&state.running&&state.rpm>1000&&Math.floor(performance.now()/140)!==state.lastPulse){state.lastPulse=Math.floor(performance.now()/140);state.dynoData.push({rpm:state.rpm,t:state.torque,p:state.power});drawDyno();}
  updateDashboard();
