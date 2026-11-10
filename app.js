@@ -4,7 +4,7 @@ import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 const $ = (id) => document.getElementById(id);
 const clamp = (v,a,b) => Math.max(a,Math.min(b,v));
 const fmt = (v,d=0) => Number(v).toLocaleString("ru-RU",{maximumFractionDigits:d,minimumFractionDigits:d});
-const defaults = {layout:"V",cyl:8,bore:86,stroke:86,compression:10.5,valves:4,cam:260,redline:7200,fuel:"EFI",aspiration:"turbo",turbo:"single",boostTarget:1.0,turboSize:2,exhaust:70,gearbox:"manual6",firing:"auto"};
+const defaults = {layout:"V",cyl:8,bore:86,stroke:86,compression:10.5,valves:4,cam:260,redline:7200,fuel:"efi",aspiration:"turbo",turbo:"single",boostTarget:1.0,turboSize:2,exhaust:70,gearbox:"manual6",firing:"auto"};
 const cfg = {...defaults};
 const state = {running:false,rpm:0,throttle:0,brake:0,boost:0,spool:0,coolant:22,oil:22,egt:180,iat:22,gear:0,speed:0,torque:0,power:0,damage:0,knock:0,phase:0,clutch:1,limiter:false,auto:false,bov:false,gearTimer:0,dyno:false,dynoData:[],lastPulse:0};
 const ratios = {manual6:[3.45,2.12,1.45,1.00,.82,.68],dct7:[3.10,2.18,1.58,1.22,1,.84,.72],auto8:[4.70,3.13,2.10,1.67,1.29,1,.84,.67],cvt:[3.2,2.7,2.3,1.9,1.6,1.3,1,.8]};
@@ -146,7 +146,7 @@ function buildEngine(){
 }
 function engineTitle(){return cfg.layout==="V"?"V"+cfg.cyl:cfg.layout==="BOXER"?"BOXER "+cfg.cyl:"I"+cfg.cyl;}
 function updateSpecs(){
- $("specLayout").value=cfg.layout;$("specLayoutRead").textContent=engineTitle();$("specGearbox").value=cfg.gearbox;$("specTurboSize").value=cfg.turboSize;$("specFiring").value=cfg.firing;$("specFuel").value=cfg.fuel;$("specExhaust").value=cfg.exhaust;$("specCyl").value=cfg.cyl;$("specBore").value=cfg.bore;$("specStroke").value=cfg.stroke;$("specComp").value=cfg.compression;$("specValves").value=cfg.valves;$("specCam").value=cfg.cam;$("specRedline").value=cfg.redline;$("specAsp").value=cfg.aspiration;$("specTurbo").value=cfg.turbo;$("specBoost").value=cfg.boostTarget;$("specBoostOut").textContent=cfg.boostTarget.toFixed(1)+" bar";
+ $("specLayout").value=cfg.layout;$("specLayoutRead").textContent=engineTitle();$("specGearbox").value=cfg.gearbox;$("specTurboSize").value=cfg.turboSize;$("specFiring").value=cfg.firing;$("specFuel").value=cfg.fuel;$("specExhaust").value=cfg.exhaust;$("exhaustOut").textContent=cfg.exhaust+" см";$("specCyl").value=cfg.cyl;$("specBore").value=cfg.bore;$("specStroke").value=cfg.stroke;$("specComp").value=cfg.compression;$("specValves").value=cfg.valves;$("specCam").value=cfg.cam;$("specRedline").value=cfg.redline;$("specAsp").value=cfg.aspiration;$("specTurbo").value=cfg.turbo;$("specBoost").value=cfg.boostTarget;$("specBoostOut").textContent=cfg.boostTarget.toFixed(1)+" bar";
  $("specDisp").textContent=(Math.PI/4*(cfg.bore/10)**2*(cfg.stroke/10)*cfg.cyl/1000).toFixed(2)+" л";
  $("specMean").textContent=(2*cfg.stroke/1000*cfg.redline/60).toFixed(1)+" м/с";
  $("redlineRead").textContent=fmt(cfg.redline);$("compressionRead").textContent=cfg.compression.toFixed(1)+":1";
@@ -170,7 +170,11 @@ function torqueModel(rpm,boost=state.boost){
  const ve=(.72+.32*Math.exp(-Math.pow((x-.48)/.3,2)))*Math.max(.5,1-state.damage*.45);
  const boostFactor=cfg.aspiration==="na"?1:1+boost*.62;
  const timing=cfg.cam>290?1.05:.98;
- return peak*ve*boostFactor*timing;
+ const row=clamp(Math.floor((1-state.throttle)*7),0,7),col=clamp(Math.floor(x*11),0,11);
+ const fuelTrim=cfg.ecuFuel?.[row]?.[col]??1;
+ const sparkTrim=cfg.ecuSpark?.[row]?.[col]??1;
+ const fuelSystem=cfg.fuel==="carb" ? .97 : cfg.fuel==="di" ? 1.035 : 1;
+ return peak*ve*boostFactor*timing*fuelSystem*clamp(fuelTrim,.75,1.3)*clamp(sparkTrim,.88,1.08);
 }
 function tickPhysics(dt){
  const disp=Math.PI/4*(cfg.bore/10)**2*(cfg.stroke/10)*cfg.cyl/1000;
@@ -269,8 +273,14 @@ function drawDyno(){
 }
 function drawEcu(){
  const c=$("ecuCanvas"),ctx=c.getContext("2d"),w=c.width,h=c.height;ctx.clearRect(0,0,w,h);
- const rows=8,cols=12,cw=w/cols,ch=h/rows;
- for(let y=0;y<rows;y++)for(let x=0;x<cols;x++){const load=(rows-y)/rows,rpm=x/(cols-1),val=cfg.ecuFuel?.[y]?.[x]??(1+load*.16-rpm*.08);ctx.fillStyle="hsl("+Math.round(190-val*85)+" 65% "+Math.round(28+val*25)+"%)";ctx.fillRect(x*cw+1,y*ch+1,cw-2,ch-2);ctx.fillStyle="#dce8ee";ctx.font="10px system-ui";ctx.fillText(val.toFixed(2),x*cw+4,y*ch+ch/2+3);}
+ const rows=8,cols=12,cw=w/cols,ch=h/rows,map=ecuMode==="fuel"?cfg.ecuFuel:cfg.ecuSpark;
+ for(let y=0;y<rows;y++)for(let x=0;x<cols;x++){
+  const load=(rows-y)/rows,rpm=x/(cols-1);
+  const val=map?.[y]?.[x]??(ecuMode==="fuel"?1+load*.16-rpm*.08:1+load*.035-rpm*.02);
+  const norm=ecuMode==="fuel"?val:(val-.88)/.2;
+  ctx.fillStyle="hsl("+Math.round((ecuMode==="fuel"?190:28)-norm*(ecuMode==="fuel"?85:20))+" 65% "+Math.round(28+norm*25)+"%)";
+  ctx.fillRect(x*cw+1,y*ch+1,cw-2,ch-2);ctx.fillStyle="#e1edf3";ctx.font="11px system-ui";ctx.fillText(val.toFixed(2),x*cw+5,y*ch+ch/2+4);
+ }
 }
 function buildDiagnostic(){const items=[];if(state.damage>.1)items.push(["P0300","Пропуски зажигания / нестабильное сгорание","Высокий"]);if(state.knock>.1)items.push(["P0325","Детонация — проверьте топливо и угол зажигания","Высокий"]);if(state.coolant>112)items.push(["P0217","Перегрев двигателя","Критический"]);if(state.boost>cfg.boostTarget*1.08)items.push(["P0234","Передув турбокомпрессора","Критический"]);if(!items.length)items.push(["NO DTC","Активных неисправностей нет","Норма"]);$("dtcList").innerHTML=items.map(i=>'<div class="dtc"><b>'+i[0]+'</b><span>'+i[1]+'</span><em>'+i[2]+'</em></div>').join("");}
 function tab(name){
@@ -289,7 +299,7 @@ function bind(){
  $("specLayout").onchange=e=>cfg.layout=e.target.value;
  $("specCyl").onchange=e=>cfg.cyl=+e.target.value;
  ["specBore","specStroke","specComp","specValves","specCam","specRedline","specBoost"].forEach(id=>$(id).oninput=e=>{const key={specBore:"bore",specStroke:"stroke",specComp:"compression",specValves:"valves",specCam:"cam",specRedline:"redline",specBoost:"boostTarget"}[id];cfg[key]=+e.target.value;updateSpecs();});
- $("specAsp").onchange=e=>{cfg.aspiration=e.target.value;if(cfg.aspiration==="supercharger"){cfg.turbo="roots";$("specTurbo").value="roots";}};$("specTurbo").onchange=e=>cfg.turbo=e.target.value;$("specTurboSize").onchange=e=>cfg.turboSize=+e.target.value;$("specFiring").onchange=e=>cfg.firing=e.target.value;$("specFuel").onchange=e=>cfg.fuel=e.target.value;$("specExhaust").oninput=e=>cfg.exhaust=+e.target.value;
+ $("specAsp").onchange=e=>{cfg.aspiration=e.target.value;if(cfg.aspiration==="supercharger"){cfg.turbo="roots";$("specTurbo").value="roots";}};$("specTurbo").onchange=e=>cfg.turbo=e.target.value;$("specTurboSize").onchange=e=>cfg.turboSize=+e.target.value;$("specFiring").onchange=e=>cfg.firing=e.target.value;$("specFuel").onchange=e=>cfg.fuel=e.target.value;$("specExhaust").oninput=e=>{cfg.exhaust=+e.target.value;$("exhaustOut").textContent=cfg.exhaust+" см";};
  $("applyBuild").onclick=()=>{buildEngine();tab("run");};
  $("gearbox").onchange=e=>{cfg.gearbox=e.target.value;state.gear=0;renderGears();};$("specGearbox").onchange=e=>{cfg.gearbox=e.target.value;state.gear=0;renderGears();};
  $("dynoStart").onclick=()=>{state.dyno=true;state.dynoData=[];state.running=true;state.throttle=.3;drawDyno();};
