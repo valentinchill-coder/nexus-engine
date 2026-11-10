@@ -289,7 +289,7 @@ function updateDashboard(){
  $("rpmValue").textContent=fmt(state.rpm);$("powerValue").textContent=fmt(state.power);$("torqueValue").textContent=fmt(state.torque);$("boostValue").textContent=state.boost.toFixed(2);
  $("rpmBar").style.width=(state.rpm/cfg.redline*100)+"%";
  $("coolantValue").textContent=fmt(state.coolant)+"°";$("oilValue").textContent=fmt(state.oil)+"°";$("iatValue").textContent=fmt(state.iat)+"°";$("egtValue").textContent=fmt(state.egt)+"°";
- $("spoolValue").textContent=fmt(state.spool*165000)+" rpm";$("spoolBar").style.width=state.spool*100+"%";$("speedValue").textContent=fmt(state.speed)+" км/ч";$("gearValue").textContent=state.gear===0?"N":state.gear<0?"R":state.gear;
+ $("spoolValue").textContent=fmt(state.spool*165000)+" rpm";$("spoolBar").style.width=state.spool*100+"%";$("speedValue").textContent=fmt(state.speed)+" км/ч";$("gearValue").textContent=state.gear===0?"N":state.gear<0?"R":state.gear;const gearValue2=$("gearValue2");if(gearValue2)gearValue2.textContent=state.gear===0?"N":state.gear;
  $("engineStatus").textContent=state.running?(state.limiter?"ОТСЕЧКА":state.damage>.25?"НЕИСПРАВНОСТЬ":"РАБОТАЕТ"):"ОСТАНОВЛЕН";
  $("engineStatus").className=state.running?"status on":"status";
  $("throttleValue").textContent=Math.round(state.throttle*100)+"%";$("throttle").value=state.throttle*100;$("brakeValue").textContent=Math.round(state.brake*100)+"%";
@@ -389,4 +389,13 @@ function bind(){
  $("repairBtn").onclick=()=>{state.damage=0;state.knock=0;state.coolant=88;buildDiagnostic();};
 }
 function loop(){let last=performance.now();function frame(now){const dt=Math.min(.04,(now-last)/1000);last=now;tickPhysics(dt);requestAnimationFrame(frame);}requestAnimationFrame(frame);}
-window.addEventListener("DOMContentLoaded",()=>{init3D();bind();renderGears();updateSpecs();loop();tab("run");});
+function showBootError(message){
+ const box=document.getElementById("bootError");
+ if(box){box.hidden=false;box.textContent="Не удалось запустить 3D-движок: "+message+" Обновите страницу или проверьте поддержку WebGL и доступ к CDN.";}
+}
+window.addEventListener("error",e=>showBootError(e.message||"ошибка загрузки"));
+window.addEventListener("unhandledrejection",e=>showBootError(e.reason?.message||String(e.reason||"ошибка модуля")));
+window.addEventListener("DOMContentLoaded",()=>{
+ try{init3D();}catch(e){console.error("3D init failed",e);showBootError(e?.message||String(e));}
+ try{bind();renderGears();updateSpecs();loop();tab("run");}catch(e){console.error("UI init failed",e);showBootError(e?.message||String(e));}
+});
