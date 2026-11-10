@@ -232,7 +232,6 @@ function schedulePulse(time){
  filter.type="lowpass";filter.frequency.value=500+rpm*.12+state.throttle*950;
  gain.gain.setValueAtTime(.0001,time);gain.gain.exponentialRampToValueAtTime(.11*(.25+state.throttle),time+.004);gain.gain.exponentialRampToValueAtTime(.0001,time+.12);
  osc.connect(filter);filter.connect(gain);gain.connect(exhaustFilter);osc.start(time);osc.stop(time+.13);
- const harmonic=audio.createOscillator(),hg=audio.createGain();harmonic.type="triangle";harmonic.frequency.value(0); 
 }
 function audioLoop(){
  if(!audio||!state.running){requestAnimationFrame(audioLoop);return;}
