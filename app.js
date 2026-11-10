@@ -220,18 +220,37 @@ function shift(dir){if(state.gearTimer>0)return;state.gear=clamp(state.gear+dir,
 function renderGears(){const box=$("gearButtons");box.innerHTML="";["N",...ratios[cfg.gearbox].map((_,i)=>String(i+1))].forEach((g,i)=>{const b=document.createElement("button");b.className="gearKey"+((i===state.gear)?" active":"");b.textContent=g;b.onclick=()=>{state.gear=i;renderGears();};box.append(b);});}
 function initAudio(){
  if(audio){audio.resume();return;}
- const AC=window.AudioContext||window.webkitAudioContext;if(!AC)return;audio=new AC();audioMaster=audio.createGain();audioMaster.gain.value=.48;audioMaster.connect(audio.destination);
+ const AC=window.AudioContext||window.webkitAudioContext;if(!AC)return;
+ audio=new AC();audioMaster=audio.createGain();audioMaster.gain.value=.48;audioMaster.connect(audio.destination);
  exhaustFilter=audio.createBiquadFilter();exhaustFilter.type="lowpass";exhaustFilter.frequency.value=850;exhaustFilter.Q.value=.8;exhaustFilter.connect(audioMaster);
- intakeFilter=audio.createBiquadFilter();intakeFilter.type="bandpass";intakeFilter.frequency.value=700;intakeFilter.Q.value=.5;intakeFilter.connect(audioMaster);\n turboOsc=audio.createOscillator();turboOsc.type="triangle";turboGain=audio.createGain();turboGain.gain.value=0;const turboFilter=audio.createBiquadFilter();turboFilter.type="bandpass";turboFilter.frequency.value=2200;turboFilter.Q.value=1.2;turboOsc.connect(turboFilter);turboFilter.connect(turboGain);turboGain.connect(audioMaster);turboOsc.start();
+ intakeFilter=audio.createBiquadFilter();intakeFilter.type="bandpass";intakeFilter.frequency.value=700;intakeFilter.Q.value=.5;intakeFilter.connect(audioMaster);
+ turboOsc=audio.createOscillator();turboOsc.type="triangle";turboGain=audio.createGain();turboGain.gain.value=0;
+ const turboFilter=audio.createBiquadFilter();turboFilter.type="bandpass";turboFilter.frequency.value=2200;turboFilter.Q.value=1.2;
+ turboOsc.connect(turboFilter);turboFilter.connect(turboGain);turboGain.connect(audioMaster);turboOsc.start();
+}
+function activeFiringOrder(){
+ if(cfg.cyl===8&&cfg.firing==="flatplane")return [1,5,4,8,6,3,7,2];
+ if(cfg.cyl===8&&cfg.firing==="crossplane")return [1,8,4,3,6,5,7,2];
+ return firingOrders[cfg.cyl]||Array.from({length:cfg.cyl},(_,i)=>i+1);
 }
 function schedulePulse(time){
  if(!audio||!state.running)return;
- const rpm=Math.max(600,state.rpm),cyl=cfg.cyl,fireHz=rpm/60*cyl/2;
- const osc=audio.createOscillator(),gain=audio.createGain(),filter=audio.createBiquadFilter();
+ const rpm=Math.max(600,state.rpm),cyl=cfg.cyl,order=activeFiringOrder();
+ const cylinder=order[pulseIndex++%order.length],bank=cfg.layout==="I"?0:(cylinder<=Math.ceil(cyl/2)?-.58:.58);
+ const osc=audio.createOscillator(),gain=audio.createGain(),filter=audio.createBiquadFilter(),pan=audio.createStereoPanner();
  osc.type="sawtooth";osc.frequency.setValueAtTime(48+rpm*.032,time);osc.frequency.exponentialRampToValueAtTime(32+rpm*.025,time+.075);
- filter.type="lowpass";filter.frequency.value=500+rpm*.12+state.throttle*950;
- gain.gain.setValueAtTime(.0001,time);gain.gain.exponentialRampToValueAtTime(.11*(.25+state.throttle),time+.004);gain.gain.exponentialRampToValueAtTime(.0001,time+.12);
- osc.connect(filter);filter.connect(gain);gain.connect(exhaustFilter);osc.start(time);osc.stop(time+.13);
+ filter.type="lowpass";filter.frequency.value=(420+rpm*.12+state.throttle*950)*(cfg.exhaust/70);
+ pan.pan.value=bank;gain.gain.setValueAtTime(.0001,time);gain.gain.exponentialRampToValueAtTime(.11*(.25+state.throttle),time+.004);gain.gain.exponentialRampToValueAtTime(.0001,time+.12);
+ osc.connect(filter);filter.connect(gain);gain.connect(pan);pan.connect(exhaustFilter);osc.start(time);osc.stop(time+.13);
+}
+function playBov(){
+ if(!audio)return;
+ const length=.42,samples=Math.floor(audio.sampleRate*length),buffer=audio.createBuffer(1,samples,audio.sampleRate),data=buffer.getChannelData(0);
+ for(let i=0;i<samples;i++)data[i]=(Math.random()*2-1)*Math.pow(1-i/samples,1.8);
+ const src=audio.createBufferSource(),filter=audio.createBiquadFilter(),gain=audio.createGain();
+ src.buffer=buffer;filter.type="bandpass";filter.frequency.value=1500+state.boost*700;filter.Q.value=.7;
+ gain.gain.setValueAtTime(.18,audio.currentTime);gain.gain.exponentialRampToValueAtTime(.001,audio.currentTime+length);
+ src.connect(filter);filter.connect(gain);gain.connect(audioMaster);src.start();
 }
 function audioLoop(){
  if(!audio||!state.running){requestAnimationFrame(audioLoop);return;}
