@@ -174,7 +174,7 @@ function loadEngineSample(){
  else if(cfg.layout==="I"&&cfg.cyl===4){sample={name:"Inline-4 · Honda Civic proxy",creator:"thepodcastdoctor",url:"https://cdn.freesound.org/previews/487/487553_9945386-hq.mp3"};}
  else if(cfg.cyl===6&&cfg.layout==="BOXER"){sample={name:"Flat-six · Porsche 911 proxy",creator:"mharo",url:"https://cdn.freesound.org/previews/55/55727_267249-hq.mp3"};}
  else {sample={name:"Engine recording · V8 proxy",creator:"overmedium",url:"https://cdn.freesound.org/previews/651/651534_2396512-hq.ogg"};}
- engineSample=new Audio();engineSample.preload="none";engineSample.loop=true;engineSample.playsInline=true;engineSample.volume=0;engineSample.playbackRate=.85;engineSample.src=sample.url;
+ engineSample=new Audio();engineSample.preload="none";engineSample.loop=true;engineSample.playsInline=true;engineSample.volume=0;engineSample.playbackRate=.85;engineSample.onerror=()=>{const label=$("soundSource");if(label)label.textContent="Резервный синтезированный звук";audioLoop();};engineSample.src=sample.url;
  const label=$("soundSource");if(label)label.textContent=sample.name+" · CC0 / "+sample.creator;
  if(wasPlaying)engineSample.play().catch(()=>{});
 }
@@ -327,7 +327,7 @@ function tab(name){
 }
 function bind(){
  document.querySelectorAll("[data-tab]").forEach(b=>b.onclick=()=>tab(b.dataset.tab));
- $("startBtn").onclick=()=>{state.running=true;state.rpm=Math.max(state.rpm,850);$("startBtn").textContent="ДВИГАТЕЛЬ РАБОТАЕТ";initAudio();audio.resume();if(engineSample){engineSample.play().catch(()=>{});}};
+ $("startBtn").onclick=()=>{state.running=true;state.rpm=Math.max(state.rpm,850);$("startBtn").textContent="ДВИГАТЕЛЬ РАБОТАЕТ";initAudio();audio.resume();if(engineSample){engineSample.play().catch(()=>audioLoop());}};
  $("stopBtn").onclick=()=>{state.running=false;state.throttle=0;state.rpm=0;if(engineSample){engineSample.pause();engineSample.currentTime=0;}$("startBtn").textContent="ЗАПУСТИТЬ ДВИГАТЕЛЬ";};
  $("throttle").oninput=e=>state.throttle=+e.target.value/100;$("brake").oninput=e=>state.brake=+e.target.value/100;
  $("gearUp").onclick=()=>shift(1);$("gearDown").onclick=()=>shift(-1);$("autoMode").onchange=e=>state.auto=e.target.checked;
