@@ -80,6 +80,15 @@ header h1{font-size:18px;letter-spacing:2px}
 
 <section class="panel"><div class="sectiontitle">ДИНАМОМЕТРИЧЕСКИЙ СТЕНД</div><div class="spec">Расчётная характеристика мощности и крутящего момента по текущей конфигурации</div><canvas id="dynoCanvas" width="900" height="260"></canvas><div class="stats"><div class="stat"><b id="peakPower">—</b><span>ПИКОВАЯ МОЩНОСТЬ · Л.С.</span></div><div class="stat"><b id="peakTorque">—</b><span>ПИКОВЫЙ МОМЕНТ · Н·М</span></div><div class="stat"><b id="engineLoad">0%</b><span>НАГРУЗКА</span></div></div><button id="dynoRun" class="primary" style="margin-top:9px">▶ Провести замер</button></section>
 <section class="panel"><div class="sectiontitle">ДИАГНОСТИКА ЭБУ · OBD-II</div><div class="row"><div class="stat"><b id="obdStatus">ГОТОВ</b><span>СОСТОЯНИЕ СИСТЕМЫ</span></div><div class="stat"><b id="faultCount">0</b><span>КОДЫ НЕИСПРАВНОСТЕЙ</span></div></div><div id="obdCodes" class="spec" style="line-height:1.8;margin:10px 0">Ошибок нет. Запусти двигатель и проверь параметры под нагрузкой.</div><button id="scan" style="margin-top:5px">⌕ Сканировать системы</button></section>
+<section class="panel" id="realV8Lab">
+ <div class="sectiontitle">ДЕТАЛЬНАЯ 3D-МОДЕЛЬ V8 · РЕАЛЬНАЯ ЗАПИСЬ ДВИГАТЕЛЯ</div>
+ <p class="spec">Отдельный интерактивный технический стенд: разрез V8, движение поршней, шатунов, коленвала и клапанного механизма, цикл 4 такта и звук на основе записей Ferrari V8. Нажми запуск звука внутри стенда.</p>
+ <div style="position:relative;width:100%;height:min(78vh,760px);min-height:560px;background:#07080a;border:1px solid #34363b;border-radius:10px;overflow:hidden">
+  <iframe title="Интерактивная 3D-модель V8 с записанным звуком" src="https://ssabeeth.github.io/v8-engine-explorer/" loading="lazy" allow="autoplay; fullscreen; accelerometer" referrerpolicy="strict-origin-when-cross-origin" style="width:100%;height:100%;border:0;background:#07080a"></iframe>
+ </div>
+ <div class="spec">Источник модели и кода: V8 Engine Explorer, лицензия MIT. Звуковые фрагменты: CC BY-SA 3.0. Это внешний стенд; он пока не связан с настройками и приборами NEXUS ENGINE.</div>
+ <a href="https://github.com/ssabeeth/v8-engine-explorer" target="_blank" rel="noopener" style="color:#62b8ff;font-size:11px">Исходный проект и сведения о лицензии</a>
+ </section>
 <div class="footer">NEXUS ENGINE · ИНТЕРАКТИВНАЯ МОДЕЛЬ ДВИГАТЕЛЯ · РАСЧЁТНЫЕ ПАРАМЕТРЫ НОСЯТ УЧЕБНЫЙ ХАРАКТЕР</div>
 <script type="module">
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
