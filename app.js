@@ -10,7 +10,7 @@ const cfg = {...defaults};
 const state = {running:false,rpm:0,throttle:0,brake:0,boost:0,spool:0,coolant:22,oil:22,egt:180,iat:22,gear:0,speed:0,torque:0,power:0,damage:0,knock:0,phase:0,clutch:1,limiter:false,auto:false,bov:false,gearTimer:0,dyno:false,dynoData:[],lastPulse:0};
 const ratios = {manual6:[3.45,2.12,1.45,1.00,.82,.68],dct7:[3.10,2.18,1.58,1.22,1,.84,.72],auto8:[4.70,3.13,2.10,1.67,1.29,1,.84,.67],cvt:[3.2,2.7,2.3,1.9,1.6,1.3,1,.8]};
 const firingOrders = {4:[1,3,4,2],6:[1,5,3,6,2,4],8:[1,8,4,3,6,5,7,2],10:[1,6,5,10,2,7,3,8,4,9],12:[1,7,5,11,3,9,6,12,2,8,4,10]};
-let scene,camera,renderer,orbit,root,crankGroup,parts=[],pistons=[],rods=[],valves=[],cams=[],turboWheels=[],turboFlap,cutawayParts=[],exploded=false,activeTab="run",ecuMode="fuel";
+let scene,camera,renderer,orbit,root,crankGroup,parts=[],pistons=[],rods=[],valves=[],cams=[],turboWheels=[],superchargerWheels=[],turboFlap,cutawayParts=[],exploded=false,activeTab="run",ecuMode="fuel";
 let audio=null,audioMaster=null,exhaustFilter=null,intakeFilter=null,turboOsc=null,turboGain=null,nextPulse=0,pulseIndex=0,audioLoopActive=false,engineSample=null,turboAssetPromise=null,detailedTurboRotors=[];
 const mats = {};
 function material(name,color,metal=.7,rough=.3){return mats[name] ||= new THREE.MeshStandardMaterial({color,metalness:metal,roughness:rough});}
@@ -70,6 +70,21 @@ function loadDetailedTurbo(parent,x,z){
  });
  return fallback;
 }
+function buildRootsSupercharger(parent,x,y,z){
+ const housing=roundedPrism(parent,.95,.78,.58,M.blue,[x,y,z]);
+ const cover=roundedPrism(parent,.92,.72,.12,M.dark,[x,y+.34,z]);
+ for(let i=0;i<2;i++){
+  const rotor=new THREE.Group();rotor.position.set(x,y,z+(i?-.19:.19));parent.add(rotor);
+  const core=cyl(rotor,.075,.075,.78,M.steel,[0,0,0]);core.rotation.z=Math.PI/2;
+  for(let l=0;l<3;l++){
+   const points=[];for(let q=0;q<=48;q++){const t=q/48*Math.PI*2*1.15,xx=-.38+q/48*.76,phase=t+l*Math.PI*2/3+(i?Math.PI/3:0);points.push(new THREE.Vector3(xx,Math.cos(phase)*.14,Math.sin(phase)*.14));}
+   mesh(rotor,new THREE.TubeGeometry(new THREE.CatmullRomCurve3(points),100,.045,8,false),i?M.gold:M.steel);
+  }
+  superchargerWheels.push(rotor);
+ }
+ for(let i=0;i<2;i++){const gear=mesh(parent,new THREE.TorusGeometry(.13,.035,10,32),M.gold,[x-.58,y-.05,z+(i?-.19:.19)]);gear.rotation.y=Math.PI/2;}
+ return housing;
+}
 function buildTurbo(parent,x,z){
  const g=new THREE.Group();g.position.set(x,.35,z);parent.add(g);
  const shell=mesh(g,new THREE.SphereGeometry(.52,32,24),M.dark,[0,0,0]);shell.scale.set(1,.82,1.05);
@@ -91,7 +106,7 @@ function buildTurbo(parent,x,z){
 }
 function buildEngine(){
  if(!scene)return;
- if(root)scene.remove(root);exploded=false;$("cutawayBtn").textContent="РАЗРЕЗ";root=new THREE.Group();scene.add(root);parts=[];pistons=[];rods=[];valves=[];cams=[];turboWheels=[];detailedTurboRotors=[];cutawayParts=[];turboFlap=null;
+ if(root)scene.remove(root);exploded=false;$("cutawayBtn").textContent="РАЗРЕЗ";root=new THREE.Group();scene.add(root);parts=[];pistons=[];rods=[];valves=[];cams=[];turboWheels=[];superchargerWheels=[];detailedTurboRotors=[];cutawayParts=[];turboFlap=null;
  const n=cfg.cyl,per=cfg.layout==="I"?n:Math.ceil(n/2),banks=cfg.layout==="I"?[0]:cfg.layout==="BOXER"?[-1.56,1.56]:[-.48,.48],spacing=clamp(.42+cfg.bore/1000,.46,.56),len=(per-1)*spacing+.9,bankAngle=cfg.layout==="V"?.48:cfg.layout==="BOXER"?1.56:0;
  // Deep sump and crankcase
  const crankcase=roundedPrism(root,len+1,1.4,.58,M.block,[0,-.38,0]);crankcase.material=crankcase.material.clone();cutawayParts.push(crankcase);
@@ -167,8 +182,7 @@ function buildEngine(){
  for(let i=0;i<14;i++)mesh(root,new THREE.BoxGeometry(.025,.31,.22),M.steel,[len*.42-.56+i*.086,.48,1.12]);
  if(cfg.aspiration!=="na"){
   if(cfg.turbo==="roots"){
-   const sc=mesh(root,new THREE.BoxGeometry(.8,.65,.72),M.blue,[len*.35,1.85,0]);
-   for(let i=0;i<2;i++){const rotor=cyl(root,.2,.2,.62,M.steel,[len*.35,1.85,(i-.5)*.32]);rotor.rotation.z=Math.PI/2;turboWheels.push(rotor);}
+   buildRootsSupercharger(root,len*.35,1.72,0);
   }else{
    loadDetailedTurbo(root,len*.58,.85);
    if(cfg.turbo==="twin"||cfg.turbo==="sequential")loadDetailedTurbo(root,-len*.58,.85);
