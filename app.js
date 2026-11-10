@@ -19,6 +19,25 @@ function mesh(parent,geo,mat,pos=[0,0,0]){const o=new THREE.Mesh(geo,mat);o.posi
 function cyl(parent,r1,r2,len,mat,pos=[0,0,0],segments=32){return mesh(parent,new THREE.CylinderGeometry(r1,r2,len,segments),mat,pos);}
 function between(parent,a,b,r,mat,r2=r){const v=new THREE.Vector3().subVectors(b,a),o=mesh(parent,new THREE.CylinderGeometry(r2,r,v.length(),14),mat);o.position.copy(a).add(b).multiplyScalar(.5);o.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0),v.normalize());return o;}
 function bolt(parent,p,r=.025){const o=cyl(parent,r,r,.035,M.steel,p,12);o.rotation.x=Math.PI/2;return o;}
+function roundedPrism(parent,length,width,height,mat,pos=[0,0,0]){
+ const w=width/2,h=height/2,r=Math.min(width,height)*.14,sh=new THREE.Shape();
+ sh.moveTo(-w+r,-h);sh.lineTo(w-r,-h);sh.quadraticCurveTo(w,-h,w,-h+r);sh.lineTo(w,h-r);sh.quadraticCurveTo(w,h,w-r,h);sh.lineTo(-w+r,h);sh.quadraticCurveTo(-w,h,-w,h-r);sh.lineTo(-w,-h+r);sh.quadraticCurveTo(-w,-h,-w+r,-h);
+ const g=new THREE.ExtrudeGeometry(sh,{depth:length,steps:1,bevelEnabled:true,bevelSegments:3,bevelSize:.025,bevelThickness:.025});
+ g.translate(0,0,-length/2);g.rotateY(Math.PI/2);g.computeVertexNormals();
+ return mesh(parent,g,mat,pos);
+}
+function iBeamRod(parent,a,b,mat){
+ const w=.115,h=.045,f=.012,web=.012,sh=new THREE.Shape();
+ sh.moveTo(-w/2,-h/2);sh.lineTo(w/2,-h/2);sh.lineTo(w/2,-h/2+f);sh.lineTo(web/2,-h/2+f);sh.lineTo(web/2,h/2-f);sh.lineTo(w/2,h/2-f);sh.lineTo(w/2,h/2);sh.lineTo(-w/2,h/2);sh.lineTo(-w/2,h/2-f);sh.lineTo(-web/2,h/2-f);sh.lineTo(-web/2,-h/2+f);sh.lineTo(-w/2,-h/2+f);sh.closePath();
+ const len=a.distanceTo(b),g=new THREE.ExtrudeGeometry(sh,{depth:len,steps:1,bevelEnabled:true,bevelSegments:2,bevelSize:.004,bevelThickness:.004});
+ g.translate(0,0,-len/2);g.computeVertexNormals();
+ const o=mesh(parent,g,mat);o.position.copy(a).add(b).multiplyScalar(.5);o.quaternion.setFromUnitVectors(new THREE.Vector3(0,0,1),new THREE.Vector3().subVectors(b,a).normalize());return o;
+}
+function valveSpring(parent,x,y,z){
+ const pts=[];for(let i=0;i<=48;i++){const t=i/48*Math.PI*2*6;pts.push(new THREE.Vector3(x+Math.cos(t)*.045,y-.12+i/48*.23,z+Math.sin(t)*.045));}
+ return mesh(parent,new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts),120,.006,6,false),M.gold);
+}
+
 function init3D(){
  const c=$("engineView");renderer=new THREE.WebGLRenderer({canvas:c,antialias:true,alpha:false,powerPreference:"high-performance"});renderer.setPixelRatio(Math.min(devicePixelRatio||1,1.5));renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.15;
  scene=new THREE.Scene();scene.background=new THREE.Color(0x0a121b);scene.fog=new THREE.Fog(0x0a121b,9,22);
@@ -75,8 +94,8 @@ function buildEngine(){
  if(root)scene.remove(root);exploded=false;$("cutawayBtn").textContent="РАЗРЕЗ";root=new THREE.Group();scene.add(root);parts=[];pistons=[];rods=[];valves=[];cams=[];turboWheels=[];detailedTurboRotors=[];cutawayParts=[];turboFlap=null;
  const n=cfg.cyl,per=cfg.layout==="I"?n:Math.ceil(n/2),banks=cfg.layout==="I"?[0]:cfg.layout==="BOXER"?[-1.56,1.56]:[-.48,.48],spacing=clamp(.42+cfg.bore/1000,.46,.56),len=(per-1)*spacing+.9,bankAngle=cfg.layout==="V"?.48:cfg.layout==="BOXER"?1.56:0;
  // Deep sump and crankcase
- const crankcase=mesh(root,new THREE.BoxGeometry(len+1,.58,1.4),M.block,[0,-.38,0]);crankcase.material=crankcase.material.clone();cutawayParts.push(crankcase);
- const sump=mesh(root,new THREE.BoxGeometry(len+.72,.38,1.28),M.dark,[0,-.76,0]);sump.material=sump.material.clone();cutawayParts.push(sump);
+ const crankcase=roundedPrism(root,len+1,1.4,.58,M.block,[0,-.38,0]);crankcase.material=crankcase.material.clone();cutawayParts.push(crankcase);
+ const sump=roundedPrism(root,len+.72,1.28,.38,M.dark,[0,-.76,0]);sump.material=sump.material.clone();cutawayParts.push(sump);
  // crankshaft core
  crankGroup=new THREE.Group();root.add(crankGroup);
  const main=cyl(crankGroup,.13,.13,len+1.2,M.steel,[0,-.45,0]);main.rotation.z=Math.PI/2;
@@ -89,9 +108,9 @@ function buildEngine(){
  banks.forEach((ang,bi)=>{
   const bank=new THREE.Group();bank.rotation.x=ang;bank.position.z=(bi-(banks.length-1)/2)*.18;root.add(bank);
   const zbank=0;
-  const headShell=mesh(bank,new THREE.BoxGeometry(len,.42,1.05),M.head,[0,.33,zbank]);headShell.material=headShell.material.clone();cutawayParts.push(headShell);
-  const headBase=mesh(bank,new THREE.BoxGeometry(len,.26,.98),M.dark,[0,.66,zbank]);headBase.material=headBase.material.clone();cutawayParts.push(headBase);
-  const valveCover=mesh(bank,new THREE.BoxGeometry(len+.12,.19,.82),material("cover"+bi,bi?0x2e5365:0x536c7b,.8,.25),[0,.91,zbank]);valveCover.material=valveCover.material.clone();cutawayParts.push(valveCover);
+  const headShell=roundedPrism(bank,len,1.05,.42,M.head,[0,.33,zbank]);headShell.material=headShell.material.clone();cutawayParts.push(headShell);
+  const headBase=roundedPrism(bank,len,.98,.26,M.dark,[0,.66,zbank]);headBase.material=headBase.material.clone();cutawayParts.push(headBase);
+  const valveCover=roundedPrism(bank,len+.12,.82,.19,material("cover"+bi,bi?0x2e5365:0x536c7b,.8,.25),[0,.91,zbank]);valveCover.material=valveCover.material.clone();cutawayParts.push(valveCover);
   // cam shafts on both sides of each head
   for(let ci=0;ci<2;ci++){
    const z=(ci?1:-1)*.3;
@@ -110,7 +129,7 @@ function buildEngine(){
    for(let k=0;k<3;k++){const ring=mesh(pg,new THREE.TorusGeometry(.181,.009,8,40),M.steel,[0,.065-k*.04,0]);ring.rotation.x=Math.PI/2;}
    const pin=cyl(pg,.048,.048,.4,M.gold,[0,-.025,0],24);pin.rotation.z=Math.PI/2;
    pistons.push({group:pg,phase,bank,x,bi,j});
-   const rod=between(bank,new THREE.Vector3(x,-.18,0),new THREE.Vector3(x,-.6,.22),.055,M.copper,.085);
+   const rod=iBeamRod(bank,new THREE.Vector3(x,-.18,0),new THREE.Vector3(x,-.6,.22),M.copper);
    rods.push({mesh:rod,bank,x,phase,bi,j});
    // four valve stems / heads per cylinder, animate on cam phase
    for(let v=0;v<cfg.valves;v++){
@@ -190,7 +209,7 @@ function animateEngine(dt){
  const a=state.phase;
  crankGroup.rotation.x=a;
  pistons.forEach(p=>{const r=cfg.stroke/2000,l=.145,ang=a+p.phase,travel=r*Math.cos(ang)+Math.sqrt(Math.max(.001,l*l-r*r*Math.sin(ang)**2));p.group.position.set(p.x,.06+travel-r,0);});
- rods.forEach(r=>{const ang=a+r.phase,rad=cfg.stroke/2000;const top=new THREE.Vector3(r.x,.06+rad*Math.cos(ang),0),bot=new THREE.Vector3(r.x,-.45+rad*Math.cos(ang),rad*Math.sin(ang));r.mesh.position.copy(top).add(bot).multiplyScalar(.5);r.mesh.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0),bot.sub(top).normalize());});
+ rods.forEach(r=>{const ang=a+r.phase,rad=cfg.stroke/2000;const top=new THREE.Vector3(r.x,.06+rad*Math.cos(ang),0),bot=new THREE.Vector3(r.x,-.45+rad*Math.cos(ang),rad*Math.sin(ang));r.mesh.position.copy(top).add(bot).multiplyScalar(.5);r.mesh.quaternion.setFromUnitVectors(new THREE.Vector3(0,0,1),bot.sub(top).normalize());});
  cams.forEach(c=>c.rotation.x=a*.5);
  valves.forEach(v=>{const lift=Math.max(0,Math.sin(a*.5+v.phase+(v.v%2)*Math.PI/2))*.075;v.stem.position.y=.78-lift;v.head.position.y=.64-lift;});
  turboWheels.forEach((w,i)=>{w.rotation.x+=dt*(state.spool*150)*(i%2?1.02:1);});
