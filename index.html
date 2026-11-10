@@ -22,6 +22,26 @@
  <div class="warning" id="shiftmsg"></div>
 </section>
 <section class="panel"><div class="two"><button id="sound">🔊 Звук: включён</button><button id="repair">🛠 Охладить и восстановить</button><button id="reset">↺ Сброс симуляции</button><button id="save">Сохранить сетап</button></div></section>
+
+<style>
+.pro-wrap{background:linear-gradient(145deg,#152a3b,#0a1420);border:1px solid #2b526b;border-radius:16px;padding:14px;margin:12px 0}
+.pro-head{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.pro-tag{color:#56e5f4;font-size:10px;letter-spacing:1.5px}
+.pro-open{display:inline-block;text-decoration:none;text-align:center;border:1px solid #36cde2;border-radius:10px;padding:10px 13px;color:#eafaff;background:#075d73;font-weight:650}
+.pro-frame{width:100%;height:78vh;min-height:620px;border:1px solid #29465d;border-radius:12px;background:#080d15;margin-top:12px}
+.pro-note{font-size:11px;color:#9ab0c3;line-height:1.5;margin-top:9px}
+@media(max-width:480px){.pro-frame{height:76vh;min-height:560px}}
+</style>
+<section class="pro-wrap" id="pro">
+ <div class="pro-head">
+  <div><div class="pro-tag">NEXUS ENGINE / PROFESSIONAL CORE</div><div class="sectiontitle" style="font-size:16px;margin-top:5px">Реалистичная физика и звук двигателя</div></div>
+  <a class="pro-open" href="https://wasabules.github.io/revforge/" target="_blank" rel="noopener">Открыть отдельно ↗</a>
+ </div>
+ <div class="pro-note">Профессиональный режим использует отдельное открытое физическое ядро: звук рассчитывается из работы цилиндров, впуска, выпускной системы, турбины, коробки и нагрузки, а не собирается из простых осцилляторов. Внутри доступны расширенная сборка двигателя, трансмиссия, поездки, приборы, 2D/3D-анимация и настройки. Интерфейс самого ядра пока на английском.</div>
+ <iframe class="pro-frame" src="https://wasabules.github.io/revforge/" title="NEXUS ENGINE Professional Simulator" allow="autoplay; fullscreen" loading="lazy"></iframe>
+ <div class="pro-note">Если встроенное окно не загрузится в Safari, нажми «Открыть отдельно». На iPhone включи звук и нажми запуск внутри симулятора — Safari требует первое касание для аудио.</div>
+</section>
+
 <div class="footer">NEXUS ENGINE · 3D-модель в реальном времени · Физическая модель симуляционная, не инженерный CAD</div>
 <script type="module">
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
