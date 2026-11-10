@@ -51,7 +51,7 @@ footer{max-width:1440px;margin:0 auto;padding:8px 14px 18px;color:#617b8c;font-s
 <section class="screen visible" id="screen-run">
 <div class="gridmain">
 <div class="panel">
-<div class="viewer"><div class="viewlabel"><b>3D ENGINE CORE</b> / <span id="engineName">V8</span></div><div class="viewtools"><button class="mini" id="cutawayBtn">РАЗРЕЗ</button><button class="mini" id="resetCamera">КАМЕРА</button></div><canvas id="engineView"></canvas><div class="viewhint">ПОВОРОТ: ПЕРЕТАСКИВАНИЕ · МАСШТАБ: ЩИПКОМ</div></div>
+<div class="viewer"><div id="bootError" hidden style="position:absolute;z-index:3;left:12px;right:12px;top:44px;padding:12px;border:1px solid #b76c42;border-radius:8px;background:#291b17;color:#ffd1b4;font-size:12px;line-height:1.5"></div><div class="viewlabel"><b>3D ENGINE CORE</b> / <span id="engineName">V8</span></div><div class="viewtools"><button class="mini" id="cutawayBtn">РАЗРЕЗ</button><button class="mini" id="resetCamera">КАМЕРА</button></div><canvas id="engineView"></canvas><div class="viewhint">ПОВОРОТ: ПЕРЕТАСКИВАНИЕ · МАСШТАБ: ЩИПКОМ</div></div>
 <div class="stats"><div class="stat"><strong id="rpmValue">0</strong><small>ОБ/МИН</small></div><div class="stat"><strong id="powerValue">0</strong><small>Л.С.</small></div><div class="stat"><strong id="torqueValue">0</strong><small>Н·М</small></div><div class="stat"><strong id="boostValue">0.00</strong><small>BAR</small></div></div><div class="bar" style="margin:0;border-radius:0;height:4px"><i id="rpmBar"></i></div>
 <div class="runcontrols">
 <div class="field"><label>ДРОССЕЛЬ <output id="throttleValue">0%</output></label><input id="throttle" type="range" min="0" max="100" value="0"></div>
