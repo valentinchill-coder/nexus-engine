@@ -9,7 +9,7 @@ const cfg = {...defaults};
 const state = {running:false,rpm:0,throttle:0,brake:0,boost:0,spool:0,coolant:22,oil:22,egt:180,iat:22,gear:0,speed:0,torque:0,power:0,damage:0,knock:0,phase:0,clutch:1,limiter:false,auto:false,bov:false,gearTimer:0,dyno:false,dynoData:[],lastPulse:0};
 const ratios = {manual6:[3.45,2.12,1.45,1.00,.82,.68],dct7:[3.10,2.18,1.58,1.22,1,.84,.72],auto8:[4.70,3.13,2.10,1.67,1.29,1,.84,.67],cvt:[3.2,2.7,2.3,1.9,1.6,1.3,1,.8]};
 const firingOrders = {4:[1,3,4,2],6:[1,5,3,6,2,4],8:[1,8,4,3,6,5,7,2],10:[1,6,5,10,2,7,3,8,4,9],12:[1,7,5,11,3,9,6,12,2,8,4,10]};
-let scene,camera,renderer,orbit,root,crankGroup,parts=[],pistons=[],rods=[],valves=[],cams=[],turboWheels=[],turboFlap,exploded=false,activeTab="run";
+let scene,camera,renderer,orbit,root,crankGroup,parts=[],pistons=[],rods=[],valves=[],cams=[],turboWheels=[],turboFlap,cutawayParts=[],exploded=false,activeTab="run";
 let audio=null,audioMaster=null,exhaustFilter=null,intakeFilter=null,nextPulse=0;
 const mats = {};
 function material(name,color,metal=.7,rough=.3){return mats[name] ||= new THREE.MeshStandardMaterial({color,metalness:metal,roughness:rough});}
@@ -54,7 +54,7 @@ function buildTurbo(parent,x,z){
 }
 function buildEngine(){
  if(!scene)return;
- if(root)scene.remove(root);root=new THREE.Group();scene.add(root);parts=[];pistons=[];rods=[];valves=[];cams=[];turboWheels=[];turboFlap=null;
+ if(root)scene.remove(root);root=new THREE.Group();scene.add(root);parts=[];pistons=[];rods=[];valves=[];cams=[];turboWheels=[];cutawayParts=[];turboFlap=null;
  const n=cfg.cyl,per=cfg.layout==="I"?n:Math.ceil(n/2),banks=cfg.layout==="I"?[0]:cfg.layout==="BOXER"?[-1.56,1.56]:[-.48,.48],spacing=clamp(.42+cfg.bore/1000,.46,.56),len=(per-1)*spacing+.9,bankAngle=cfg.layout==="V"?.48:cfg.layout==="BOXER"?1.56:0;
  // Deep sump and crankcase
  mesh(root,new THREE.BoxGeometry(len+1,.58,1.4),M.block,[0,-.38,0]);
@@ -161,7 +161,7 @@ function animateEngine(dt){
  valves.forEach(v=>{const lift=Math.max(0,Math.sin(a*.5+v.phase+(v.v%2)*Math.PI/2))*.075;v.stem.position.y=.78-lift;v.head.position.y=.64-lift;});
  turboWheels.forEach((w,i)=>{w.rotation.x+=dt*(state.spool*150)*(i%2?1.02:1);});
  if(turboFlap)turboFlap.rotation.y=state.boost>cfg.boostTarget*.9?.35:0;
- if(exploded)root.scale.setScalar(1.08);else root.scale.setScalar(1);
+ root.scale.setScalar(1);
 }
 function torqueModel(rpm,boost=state.boost){
  const disp=Math.PI/4*(cfg.bore/10)**2*(cfg.stroke/10)*cfg.cyl/1000;
@@ -265,7 +265,7 @@ function bind(){
  $("throttle").oninput=e=>state.throttle=+e.target.value/100;$("brake").oninput=e=>state.brake=+e.target.value/100;
  $("gearUp").onclick=()=>shift(1);$("gearDown").onclick=()=>shift(-1);$("autoMode").onchange=e=>state.auto=e.target.checked;
  $("bovBtn").onclick=()=>{state.bov=true;setTimeout(()=>state.bov=false,650);};
- $("cutawayBtn").onclick=()=>{exploded=!exploded;$("cutawayBtn").textContent=exploded?"ОБЫЧНЫЙ ВИД":"РАЗРЕЗ ДВИГАТЕЛЯ";};
+ $("cutawayBtn").onclick=()=>{exploded=!exploded;$("cutawayBtn").textContent=exploded?"ОБЫЧНЫЙ ВИД":"РАЗРЕЗ";cutawayParts.forEach(o=>{o.material.transparent=exploded;o.material.opacity=exploded?.16:1;o.material.depthWrite=!exploded;});};
  $("resetCamera").onclick=()=>{camera.position.set(5.4,4.1,6.5);orbit.target.set(0,.25,0);orbit.update();};
  $("specLayout").onchange=e=>cfg.layout=e.target.value;
  $("specCyl").onchange=e=>cfg.cyl=+e.target.value;
